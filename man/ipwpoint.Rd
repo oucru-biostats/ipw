@@ -101,6 +101,22 @@ msm <- (svyglm(y ~ a, design=svydesign(~1, weights=~sw,
    data=simdat)))
 coef(msm)
 confint(msm)
+
+#Compute basic bootstrap confidence interval .
+#boot.fun <- function(dat, index){
+#    coef(glm(
+#        formula = y ~ a,
+#        data = dat[index,],
+#        weights = ipwpoint(
+#            exposure = a,
+#            family = "gaussian",
+#            numerator = ~ 1,
+#            denominator = ~ l,
+#            data = dat[index,])$ipw.weights))[2]
+#    }
+#bootres <- boot(simdat, boot.fun, 499);bootres
+#boot.ci(bootres, type = "basic")
+
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
