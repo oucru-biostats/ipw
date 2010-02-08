@@ -23,11 +23,10 @@ tstartfun <- function(
 			)
 		#compute tstart
 			#time of previous record when there is a previous record
-			#zero for first record, when time of first record is after zero
-			#-1 for first record, when time of first record is zero
-			tempfun <- function(x){
-				tempdif <- diff(c(0, x))
-				tempdif[tempdif == 0] <- 1
+			#-1 for first record
+			tempfun <- function(x) {
+				tempdif <- diff(c(min(x), x))
+				tempdif[tempdif == 0] <- min(x) + 1
 				return(x - tempdif)
 				}
 			tempdat$tstart <- unsplit(lapply(split(tempdat$timevar, tempdat$id), function(x)tempfun(x)), tempdat$id)

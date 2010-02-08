@@ -8,8 +8,7 @@
 \description{Function to compute starting time for intervals of follow-up, when using the counting process notation. Within each unit under observation (usually individuals), computes starting time equal to:
 \itemize{
 \item time of previous record when there is a previous record.
-\item 0 for first record, when time of first record is after 0.
-\item -1 for first record, when time of first record is 0.
+\item -1 for first record.
 }}
 
 

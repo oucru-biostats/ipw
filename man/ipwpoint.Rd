@@ -70,10 +70,9 @@ a.lin <- simdat$l - 10
 pa <- exp(a.lin)/(1 + exp(a.lin))
 simdat$a <- rbinom(n, 1, prob = pa)
 simdat$y <- 10*simdat$a + 0.5*simdat$l + rnorm(n, -10, 5)
-simdat$id <- 1:nrow(simdat)
-simdat[1:10,]
+simdat[1:5,]
 
-#Exposure allocation model is logistic model.
+#Estimate ipw weights.
 temp <- ipwpoint(
    exposure = a,
    family = "binomial",
@@ -81,16 +80,21 @@ temp <- ipwpoint(
    numerator = ~ 1,
    denominator = ~ l,
    data = simdat)
+summary(temp$ipw.weights)
 
-#plot inverse probability weights
+#Plot inverse probability weights
 graphics.off()
 ipwplot(weights = temp$ipw.weights, logscale = FALSE,
    main = "Stabilized weights", xlim = c(0, 8))
 
+#Examine numerator and denominator models.
+summary(temp$num.mod)
+summary(temp$den.mod)
+
 #Marginal structural model for the causal effect of a on y
-#corrected for confounding by l using inverse probability weighting.
+#corrected for confounding by l using inverse probability weighting
 #with robust standard error from the survey package.
-msm <- (svyglm(y ~ a, design=svydesign(id=~1, weights=~temp$ipw.weights,
+msm <- (svyglm(y ~ a, design=svydesign(~1, weights=~temp$ipw.weights,
    data=simdat)))
 coef(msm)
 confint(msm)
