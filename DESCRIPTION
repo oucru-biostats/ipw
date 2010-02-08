@@ -1,6 +1,6 @@
 Package: ipw
-Version: 1.0
-Date: 2010-02-04
+Version: 1.0-1
+Date: 2010-02-08
 Title: Estimate inverse probability weights.
 Author: Willem M. van der Wal <w.m.vanderwal@amc.uva.nl>
 Maintainer: Willem M. van der Wal <w.m.vanderwal@amc.uva.nl>
@@ -12,6 +12,6 @@ Description: Estimate inverse probability weights. These are typically
         situations and longitudinal studies can be used.
 Encoding: latin1
 License: GPL (>= 2)
-Packaged: 2010-02-04 18:25:23 UTC; wwal
+Packaged: 2010-02-08 09:48:29 UTC; wwal
 Repository: CRAN
-Date/Publication: 2010-02-04 19:40:55
+Date/Publication: 2010-02-08 10:18:53

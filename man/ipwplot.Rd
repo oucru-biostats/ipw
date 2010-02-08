@@ -11,8 +11,8 @@ For point treatment weights: display density plot.
 }
 
 \usage{
-ipwplot(weights, timevar = NULL, binwidth = NULL, logscale = TRUE, xlab = NULL, ylab = NULL,
-        main = "", ref = TRUE, ...)
+ipwplot(weights, timevar = NULL, binwidth = NULL, logscale = TRUE,
+        xlab = NULL, ylab = NULL, main = "", ref = TRUE, ...)
 }
 %- maybe also 'usage' for other objects documented here.
 
@@ -47,28 +47,30 @@ A plot is displayed.
 #Load longitudinal data from HIV positive individuals.
 data(haartdat)
 
-#CD4 count is confounder for the effect of initiation of HAART therapy on mortality.
+#CD4 is confounder for the effect of initiation of HAART therapy on mortality.
 #Estimate inverse probability weights to correct for confounding.
-#Exposure allocation model is Cox proportional hazards model, with initiation of HAART as event.
+#Exposure allocation model is Cox proportional hazards model.
 temp <- ipwtm(
-	exposure = haartind,
-	family = "survival",
-	numerator = ~ sex + age,
-	denominator = ~ sex + age + cd4.sqrt,
-	id = patient,
-	tstart = tstart,
-	timevar = fuptime,
-	type = "first",
-	data = haartdat)
+   exposure = haartind,
+   family = "survival",
+   numerator = ~ sex + age,
+   denominator = ~ sex + age + cd4.sqrt,
+   id = patient,
+   tstart = tstart,
+   timevar = fuptime,
+   type = "first",
+   data = haartdat)
 
 #plot inverse probability weights
 graphics.off()
-ipwplot(weights = temp$ipw.weights, timevar = haartdat$fuptime, binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized weights")
+ipwplot(weights = temp$ipw.weights, timevar = haartdat$fuptime,
+   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized weights")
 
-#Marginal structural model for the causal effect of initiation of HAART on mortality
+#MSM for the causal effect of initiation of HAART on mortality
 #corrected for confounding by CD4 count using inverse probability weighting
 #with robust standard error obtained using cluster().
-summary(coxph(Surv(tstart, fuptime, event) ~ haartind + cluster(patient), data = haartdat, weights = temp$ipw.weights))	
+summary(coxph(Surv(tstart, fuptime, event) ~ haartind + cluster(patient),
+   data = haartdat, weights = temp$ipw.weights))   
 
 #Uncorrected model
 summary(coxph(Surv(tstart, fuptime, event) ~ haartind, data = haartdat))

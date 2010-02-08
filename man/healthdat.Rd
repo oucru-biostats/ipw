@@ -33,7 +33,6 @@ In these simulated data, IQ is a confounder for the effect of income on health.
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
-
 #load IQ, income and health data.
 data(healthdat)
 
@@ -41,15 +40,16 @@ data(healthdat)
 #Estimate inverse probability weights to correct for confounding.
 #Exposure allocation model is linear regression model.
 temp <- ipwpoint(
-	exposure = income,
-	family = "gaussian",
-	numerator = ~ 1,
-	denominator = ~ iq,
-	data = healthdat)
+   exposure = income,
+   family = "gaussian",
+   numerator = ~ 1,
+   denominator = ~ iq,
+   data = healthdat)
 
 #plot inverse probability weights
 graphics.off()
-ipwplot(weights = temp$ipw.weights, logscale = FALSE, main = "Stabilized weights", xlim = c(0, 8))
+ipwplot(weights = temp$ipw.weights, logscale = FALSE,
+   main = "Stabilized weights", xlim = c(0, 8))
 
 #Marginal structural model for the causal effect of income on health score
 #corrected for confounding by IQ using inverse probability weighting.
@@ -57,19 +57,18 @@ summary(glm(health ~ income, data = healthdat, weights = temp$ipw.weights))
 
 #Compute basic bootstrap confidence interval for income parameter.
 boot.fun <- function(dat, index){
-    coef(glm(
-        formula = health ~ income,
-        data = dat[index,],
-        weights = ipwpoint(
+   coef(glm(
+      formula = health ~ income,
+      data = dat[index,],
+      weights = ipwpoint(
             exposure = income,
             family = "gaussian",
             numerator = ~ 1,
             denominator = ~ iq,
             data = dat[index,])$ipw.weights))[2]
-    }
+   }
 bootres <- boot(healthdat, boot.fun, 499);bootres
 boot.ci(bootres, type = "basic")
 }
-
 
 \keyword{datasets}
