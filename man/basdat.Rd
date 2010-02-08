@@ -18,7 +18,7 @@ A data frame with 386 observations on the following 4 variables.
 }
 
 \details{
-These simulated data are used together with data in \code{\link{timedat}} in a detailed causal modelling example using inverse probability weighting (IPW). See \code{\link{timedat}} for the example. Data were simulated using the algorithm described in Van der Wal e.a. (2009).
+These simulated data are used together with data in \code{\link{timedat}} in a detailed causal modelling example using inverse probability weighting (IPW). See \code{\link{ipwtm}} for the example. Data were simulated using the algorithm described in Van der Wal e.a. (2009).
 }
 \source{
 %%  ~~ reference to a publication or URL from which the data were obtained ~~
@@ -31,6 +31,6 @@ Van der Wal W. M., Prins M., Lumbreras B. & Geskus R. B. (2009). A simple G-comp
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
-#See ?timedat for example.
+#see ?ipwtm for example
 }
 \keyword{datasets}

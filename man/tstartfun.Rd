@@ -57,6 +57,8 @@ mydata1$tstart <- tstartfun(patient, time.days, mydata1)
 
 #result
 mydata1
+
+#see also ?ipwtm for example
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the

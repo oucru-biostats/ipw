@@ -44,36 +44,7 @@ A plot is displayed.
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
-#Load longitudinal data from HIV positive individuals.
-data(haartdat)
-
-#CD4 is confounder for the effect of initiation of HAART therapy on mortality.
-#Estimate inverse probability weights to correct for confounding.
-#Exposure allocation model is Cox proportional hazards model.
-temp <- ipwtm(
-   exposure = haartind,
-   family = "survival",
-   numerator = ~ sex + age,
-   denominator = ~ sex + age + cd4.sqrt,
-   id = patient,
-   tstart = tstart,
-   timevar = fuptime,
-   type = "first",
-   data = haartdat)
-
-#plot inverse probability weights
-graphics.off()
-ipwplot(weights = temp$ipw.weights, timevar = haartdat$fuptime,
-   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized weights")
-
-#MSM for the causal effect of initiation of HAART on mortality
-#corrected for confounding by CD4 count using inverse probability weighting
-#with robust standard error obtained using cluster().
-summary(coxph(Surv(tstart, fuptime, event) ~ haartind + cluster(patient),
-   data = haartdat, weights = temp$ipw.weights))   
-
-#Uncorrected model
-summary(coxph(Surv(tstart, fuptime, event) ~ haartind, data = haartdat))
+#see ?ipwpoint and ?ipwtm for examples
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the
