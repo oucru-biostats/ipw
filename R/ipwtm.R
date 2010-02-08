@@ -52,11 +52,11 @@ ipwtm <- function(
 			)
 		#make selection variable, time points up to first switch from lowest value, or all time points
 			if (type == "first" & (family == "binomial" | family == "survival"))
-				{tempdat$selvar <- do.call("c", sapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(match(1, x))) return(c(rep(1,match(1, x)),rep(0,length(x)-match(1, x)))) else return(rep(1,length(x)))))}
+				{tempdat$selvar <- do.call("c", lapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(match(1, x))) return(c(rep(1,match(1, x)),rep(0,length(x)-match(1, x)))) else return(rep(1,length(x)))))}
 			if (type == "first" & (family == "multinomial" | family == "ordinal")){
 					z <- unique(tempdat$exposure)[unique(tempdat$exposure) != sort(unique(tempdat$exposure))[1]]
 					min2 <- function(x)ifelse(min(is.na(unique(x))) == 1, NA, min(x, na.rm = TRUE))
-					tempdat$selvar <- do.call("c", sapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(min2(match(z, x)))) return(c(rep(1,min2(match(z, x))),rep(0,length(x)-min2(match(z, x))))) else return(rep(1,length(x)))))
+					tempdat$selvar <- do.call("c", lapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(min2(match(z, x)))) return(c(rep(1,min2(match(z, x))),rep(0,length(x)-min2(match(z, x))))) else return(rep(1,length(x)))))
 			}
 			if (type == "all")
 				{tempdat$selvar <- rep(1, nrow(tempdat))}
@@ -81,7 +81,7 @@ ipwtm <- function(
 					tempdat$p.numerator[tempdat$exposure == 0 & tempdat$selvar == 1] <- 1 - predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 0]
 					tempdat$p.numerator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
-					tempdat$w.numerator <- unlist(sapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)))
+					tempdat$w.numerator <- unlist(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)))
 						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
 						mod1$call$family <- tempcall$link
 						mod1$call$data <- tempcall$data
@@ -98,7 +98,7 @@ ipwtm <- function(
 				tempdat$p.denominator[tempdat$exposure == 0 & tempdat$selvar == 1] <- 1 - predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 0]
 				tempdat$p.denominator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
-				tempdat$w.denominator <- unlist(sapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)))
+				tempdat$w.denominator <- unlist(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)))
 				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
 				mod2$call$family <- tempcall$link
 				mod2$call$data <- tempcall$data
@@ -132,7 +132,7 @@ ipwtm <- function(
 					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 0)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 0),], exp(-1*bashaz.numerator*risk.numerator))
 					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.numerator*risk.numerator))
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
-					tempdat$w.numerator <- unsplit(sapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)), tempdat$id)
+					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)), tempdat$id)
 					mod1$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar), ", ", deparse(tempcall$exposure), ") ", deparse(tempcall$numerator), sep = "")))
 					mod1$call$data <- tempcall$data
 					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
@@ -159,7 +159,7 @@ ipwtm <- function(
 				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 0)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 0),], exp(-1*bashaz.denominator*risk.denominator))
 				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.denominator*risk.denominator))
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
-				tempdat$w.denominator <- unsplit(sapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)), tempdat$id)
+				tempdat$w.denominator <- unsplit(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)), tempdat$id)
 				mod2$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar), ", ", deparse(tempcall$exposure), ") ", deparse(tempcall$denominator), sep = "")))
 				mod2$call$data <- tempcall$data
 				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
@@ -266,7 +266,7 @@ ipwtm <- function(
 				mod2$call$waves <- tempcall$waves
 				tempdat$kdens1 <- dnorm(tempdat$exposure, predict(mod1), as.numeric(sqrt(summary(mod1)$dispersion)[1]))
 				tempdat$kdens2 <- dnorm(tempdat$exposure, predict(mod2), as.numeric(sqrt(summary(mod2)$dispersion)[1]))
-				tempdat$ipw.weights <- unsplit(sapply(split(with(tempdat, kdens1/kdens2), tempdat$id), function(x)cumprod(x)), tempdat$id)
+				tempdat$ipw.weights <- unsplit(lapply(split(with(tempdat, kdens1/kdens2), tempdat$id), function(x)cumprod(x)), tempdat$id)
 			}
 		#check for NA's in weights
 			if (sum(is.na(tempdat$ipw.weights)) > 0) stop ("NA's in weights!")
