@@ -36,7 +36,7 @@ ipwpoint <- function(
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
-						formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						family = lf,
 						data = data,
 						na.action = na.fail,
@@ -44,12 +44,12 @@ ipwpoint <- function(
 					tempdat$w.numerator <- vector("numeric", nrow(tempdat))
 					tempdat$w.numerator[tempdat$exposure == 0] <- 1 - predict.glm(mod1, type = "response")[tempdat$exposure == 0]
 					tempdat$w.numerator[tempdat$exposure == 1] <- predict.glm(mod1, type = "response")[tempdat$exposure == 1]
-						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
+						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 						mod1$call$family <- tempcall$link
 						mod1$call$data <- tempcall$data
 				}
 				mod2 <- glm(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					family = lf,
 					data = data,
 					na.action = na.fail,
@@ -57,7 +57,7 @@ ipwpoint <- function(
 				tempdat$w.denominator <- vector("numeric", nrow(tempdat))
 				tempdat$w.denominator[tempdat$exposure == 0] <- 1 - predict.glm(mod2, type = "response")[tempdat$exposure == 0]
 				tempdat$w.denominator[tempdat$exposure == 1] <- predict.glm(mod2, type = "response")[tempdat$exposure == 1]
-				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$family <- tempcall$link
 				mod2$call$data <- tempcall$data
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
@@ -68,25 +68,25 @@ ipwpoint <- function(
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
 					mod1 <- multinom(
-						formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						data = data,
 						na.action = na.fail,
 						...)
 					pred1 <- as.data.frame(predict(mod1, type = "probs"))
 					tempdat$w.numerator <- vector("numeric", nrow(tempdat))
 					for (i in 1:length(unique(tempdat$exposure)))tempdat$w.numerator[with(tempdat, exposure == sort(unique(tempdat$exposure))[i])] <- pred1[tempdat$exposure == sort(unique(tempdat$exposure))[i],i]
-					mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
+					mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
 								}
 				mod2 <- multinom(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					na.action = na.fail,
 					...)
 				pred2 <- as.data.frame(predict(mod2, type = "probs"))
 				tempdat$w.denominator <- vector("numeric", nrow(tempdat))
 				for (i in 1:length(unique(tempdat$exposure)))tempdat$w.denominator[with(tempdat, exposure == sort(unique(tempdat$exposure))[i])] <- pred2[tempdat$exposure == sort(unique(tempdat$exposure))[i],i]
-				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
@@ -100,7 +100,7 @@ ipwpoint <- function(
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
 					mod1 <- polr(
-						formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						data = data,
 						method = m,
 						na.action = na.fail,
@@ -108,12 +108,12 @@ ipwpoint <- function(
 					pred1 <- as.data.frame(predict(mod1, type = "probs"))
 					tempdat$w.numerator <- vector("numeric", nrow(tempdat))
 					for (i in 1:length(unique(tempdat$exposure)))tempdat$w.numerator[with(tempdat, exposure == sort(unique(tempdat$exposure))[i])] <- pred1[tempdat$exposure == sort(unique(tempdat$exposure))[i],i]
-					mod1$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$numerator), sep = "")))
+					mod1$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
 					mod1$call$method <- m
 				}
 				mod2 <- polr(
-					formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					method = m,
 					na.action = na.fail,
@@ -121,7 +121,7 @@ ipwpoint <- function(
 				pred2 <- as.data.frame(predict(mod2, type = "probs"))
 				tempdat$w.denominator <- vector("numeric", nrow(tempdat))
 				for (i in 1:length(unique(tempdat$exposure)))tempdat$w.denominator[with(tempdat, exposure == sort(unique(tempdat$exposure))[i])] <- pred2[tempdat$exposure == sort(unique(tempdat$exposure))[i],i]
-				mod2$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
 				mod2$call$method <- m
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
@@ -129,20 +129,20 @@ ipwpoint <- function(
 		#weights gaussian
 			if (tempcall$family == "gaussian") {
 				mod1 <- glm(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 					data = data,
 					na.action = na.fail,
 					...)
 				tempdat$w.numerator <- dnorm(tempdat$exposure, predict(mod1), sd(mod1$residuals))
-				mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
+				mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 				mod1$call$data <- tempcall$data
 				mod2 <- glm(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					na.action = na.fail,
 					...)
 				tempdat$w.denominator <- dnorm(tempdat$exposure, predict(mod2), sd(mod2$residuals))
-				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}

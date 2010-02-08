@@ -28,21 +28,21 @@ ipwtm <- function(
 			if (!("timevar" %in% names(tempcall))) stop("No timevar specified")
 			if (!("type" %in% names(tempcall))) stop("No type specified (\"first\" or \"all\")")
 			if (!(tempcall$type %in% c("first", "all"))) stop("No type specified (\"first\" or \"all\")")
-			if (tempcall$family %in% c("binomial", "survival", "multinomial", "ordinal") & tempcall$type == "all") stop(paste("Type \"all\" not yet implemented for family = ", deparse(tempcall$family), sep = ""))
-			if (tempcall$family %in% c("gaussian") & tempcall$type == "first") stop(paste("Type \"first\" not implemented for family = ", deparse(tempcall$family), sep = ""))
+			if (tempcall$family %in% c("binomial", "survival", "multinomial", "ordinal") & tempcall$type == "all") stop(paste("Type \"all\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
+			if (tempcall$family %in% c("gaussian") & tempcall$type == "first") stop(paste("Type \"first\" not implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
 			if (tempcall$family %in% c("gaussian") & !("numerator" %in% names(tempcall))) stop("Numerator necessary for family = \"gaussian\"")
 			if (!("data" %in% names(tempcall))) stop("No data specified")
 			if (!is.null(tempcall$trim)) {if(tempcall$trim < 0 | tempcall$trim > 0.5) stop("Invalid trim percentage specified (0-0.5)")}
 		#record original order of dataframe so that the output can be returned in the same order
 			order.orig <- 1:nrow(data)
 			order.orig <- order.orig[order(
-				eval(parse(text = paste("data$", deparse(tempcall$id), sep = ""))),
-				eval(parse(text = paste("data$", deparse(tempcall$timevar), sep = "")))
+				eval(parse(text = paste("data$", deparse(tempcall$id, width.cutoff = 500), sep = ""))),
+				eval(parse(text = paste("data$", deparse(tempcall$timevar, width.cutoff = 500), sep = "")))
 				)] #sort as below
 		#sort dataframe on follow-up time within each individual, necessary for cumulative products below
 			data <- data[order(
-				eval(parse(text = paste("data$", deparse(tempcall$id), sep = ""))),
-				eval(parse(text = paste("data$", deparse(tempcall$timevar), sep = "")))
+				eval(parse(text = paste("data$", deparse(tempcall$id, width.cutoff = 500), sep = ""))),
+				eval(parse(text = paste("data$", deparse(tempcall$timevar, width.cutoff = 500), sep = "")))
 				),]
 		#make new dataframe for newly computed variables, to prevent variable name conflicts
 			tempdat <- data.frame(
@@ -71,7 +71,7 @@ ipwtm <- function(
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
-						formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						family = lf,
 						data = data,
 						subset = tempdat$selvar == 1,
@@ -82,13 +82,13 @@ ipwtm <- function(
 					tempdat$p.numerator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
 					tempdat$w.numerator <- unlist(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)))
-						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
+						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 						mod1$call$family <- tempcall$link
 						mod1$call$data <- tempcall$data
-						mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+						mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				}
 				mod2 <- glm(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					family = lf,
 					data = data,
 					subset = tempdat$selvar == 1,
@@ -99,10 +99,10 @@ ipwtm <- function(
 				tempdat$p.denominator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
 				tempdat$w.denominator <- unlist(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)))
-				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$family <- tempcall$link
 				mod2$call$data <- tempcall$data
-				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights Cox
@@ -111,7 +111,7 @@ ipwtm <- function(
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 					else {
 					mod1 <- coxph(
-						formula = eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar), ", ", deparse(tempcall$exposure), ") ", deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						data = data,
 						subset = tempdat$selvar == 1,
 						na.action = na.fail,
@@ -133,12 +133,12 @@ ipwtm <- function(
 					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.numerator*risk.numerator))
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
 					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)), tempdat$id)
-					mod1$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar), ", ", deparse(tempcall$exposure), ") ", deparse(tempcall$numerator), sep = "")))
+					mod1$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
-					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				}
 				mod2 <- coxph(
-					formula = eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar), ", ", deparse(tempcall$exposure), ") ", deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					subset = tempdat$selvar == 1,
 					na.action = na.fail,
@@ -160,9 +160,9 @@ ipwtm <- function(
 				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.denominator*risk.denominator))
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
 				tempdat$w.denominator <- unsplit(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)), tempdat$id)
-				mod2$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar), ", ", deparse(tempcall$exposure), ") ", deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
-				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights multinomial
@@ -171,7 +171,7 @@ ipwtm <- function(
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
 					mod1 <- multinom(
-						formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						data = data,
 						subset = tempdat$selvar == 1,
 						na.action = na.fail,
@@ -179,12 +179,12 @@ ipwtm <- function(
 					pred1 <- as.data.frame(predict(mod1, type = "probs"))
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
 					for (i in 1:length(unique(tempdat$exposure)))tempdat$p.numerator[with(tempdat, tempdat$selvar == 1 & exposure == sort(unique(tempdat$exposure))[i])] <- pred1[tempdat$exposure[tempdat$selvar == 1] == sort(unique(tempdat$exposure))[i],i]
-					mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
+					mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
-					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				}
 				mod2 <- multinom(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					subset = tempdat$selvar == 1,
 					na.action = na.fail,
@@ -192,9 +192,9 @@ ipwtm <- function(
 				pred2 <- as.data.frame(predict(mod2, type = "probs"))
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
 				for (i in 1:length(unique(tempdat$exposure)))tempdat$p.denominator[with(tempdat, tempdat$selvar == 1 & exposure == sort(unique(tempdat$exposure))[i])] <- pred2[tempdat$exposure[tempdat$selvar == 1] == sort(unique(tempdat$exposure))[i],i]
-				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
-				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				tempdat$ipw.weights <- unsplit(lapply(split(with(tempdat, p.numerator/p.denominator), tempdat$id), function(x)cumprod(x)), tempdat$id)
 			}
 		#weights ordinal
@@ -207,7 +207,7 @@ ipwtm <- function(
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
 					mod1 <- polr(
-						formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$numerator), sep = ""))),
+						formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 						data = data,
 						method = m,
 						subset = tempdat$selvar == 1,
@@ -216,13 +216,13 @@ ipwtm <- function(
 					pred1 <- as.data.frame(predict(mod1, type = "probs"))
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
 					for (i in 1:length(unique(tempdat$exposure)))tempdat$p.numerator[with(tempdat, tempdat$selvar == 1 & exposure == sort(unique(tempdat$exposure))[i])] <- pred1[tempdat$exposure[tempdat$selvar == 1] == sort(unique(tempdat$exposure))[i],i]
-					mod1$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$numerator), sep = "")))
+					mod1$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
 					mod1$call$method <- m
-					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				}
 				mod2 <- polr(
-					formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					method = m,
 					subset = tempdat$selvar == 1,
@@ -231,35 +231,35 @@ ipwtm <- function(
 				pred2 <- as.data.frame(predict(mod2, type = "probs"))
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
 				for (i in 1:length(unique(tempdat$exposure)))tempdat$p.denominator[with(tempdat, tempdat$selvar == 1 & exposure == sort(unique(tempdat$exposure))[i])] <- pred2[tempdat$exposure[tempdat$selvar == 1] == sort(unique(tempdat$exposure))[i],i]
-				mod2$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure), ")", deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste("as.factor(", deparse(tempcall$exposure, width.cutoff = 500), ")", deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
 				mod2$call$method <- m
-				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure), " = 1 (selvar == 1)", sep = "")
+				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				tempdat$ipw.weights <- unsplit(lapply(split(with(tempdat, p.numerator/p.denominator), tempdat$id), function(x)cumprod(x)), tempdat$id)
 			}
 		#weights gaussian
 			require(geepack)
 			if (tempcall$family == "gaussian") {
 				mod1 <- geeglm(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
 					data = data,
 					id = tempdat$id,
 					corstr = tempcall$corstr,
 					waves = tempdat$timevar,
 					...)
-				mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$numerator), sep = "")))
+				mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 				mod1$call$data <- tempcall$data
 				mod1$call$id <- tempcall$id
 				mod1$call$corstr <- tempcall$corstr
 				mod1$call$waves <- tempcall$waves
 				mod2 <- geeglm(
-					formula = eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = ""))),
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
 					data = data,
 					id = tempdat$id,
 					corstr = tempcall$corstr,
 					waves = tempdat$timevar,
 					...)
-				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure), deparse(tempcall$denominator), sep = "")))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
 				mod2$call$data <- tempcall$data
 				mod2$call$id <- tempcall$id
 				mod2$call$corstr <- tempcall$corstr

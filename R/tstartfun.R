@@ -8,13 +8,13 @@ tstartfun <- function(
 		#record original order of dataframe so that the output can be returned in the same order
 			order.orig <- 1:nrow(data)
 			order.orig <- order.orig[order(
-				eval(parse(text = paste("data$", deparse(tempcall$id), sep = ""))),
-				eval(parse(text = paste("data$", deparse(tempcall$timevar), sep = "")))
+				eval(parse(text = paste("data$", deparse(tempcall$id, width.cutoff = 500), sep = ""))),
+				eval(parse(text = paste("data$", deparse(tempcall$timevar, width.cutoff = 500), sep = "")))
 				)] #sort as below
 		#sort dataframe on follow-up time within each individual, necessary for cumulative products below
 			data <- data[order(
-				eval(parse(text = paste("data$", deparse(tempcall$id), sep = ""))),
-				eval(parse(text = paste("data$", deparse(tempcall$timevar), sep = "")))
+				eval(parse(text = paste("data$", deparse(tempcall$id, width.cutoff = 500), sep = ""))),
+				eval(parse(text = paste("data$", deparse(tempcall$timevar, width.cutoff = 500), sep = "")))
 				),]
 		#make new dataframe for newly computed variables, to prevent variable name conflicts
 			tempdat <- data.frame(
