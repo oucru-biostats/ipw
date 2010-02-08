@@ -12,19 +12,19 @@
        ...)}
 
 \arguments{
-\item{exposure}{vector, representing the exposure of interest. Both numerical and factor variables can be used. A binomial exposure variable should be coded using values \code{0}/\code{1}}
+\item{exposure}{vector, representing the exposure of interest. Both numerical and categorical variables can be used. A binomial exposure variable should be coded using values \code{0}/\code{1}}
 \item{family}{specifies a family of link functions, used to model the relationship between the variables in \code{numerator} or \code{denominator} and \code{exposure}, respectively. Alternatives are \code{"binomial"}, \code{"survival"}, \code{"multinomial"}, \code{"ordinal"} and \code{"gaussian"}. A specific link function is then chosen using the argument \code{link}, as explained below. Regression models are fitted using \code{\link{glm}}, \code{\link{coxph}}, \code{\link{multinom}}, \code{\link{polr}} or \code{\link{geeglm}}, respectively.}
 \item{link}{specifies the specific link function between the variables in \code{numerator} or \code{denominator} and exposure, respectively. For \code{family="binomial"} (fitted using \code{\link{glm}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, \code{"log"} and \code{"cloglog"}. For \code{family="survival"} this argument is ignored, and Cox proportional hazards models are always used (fitted using \code{\link{coxph}}). For \code{family="multinomial"} this argument is ignored, and multinomial logistic regression models are always used (fitted using \code{\link{multinom}}). For \code{family=} \code{"ordinal"} (fitted using \code{\link{polr}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, and \code{"cloglog"}. For \code{family="gaussian"} this argument is ignored, and GEE models with an identity link are always used (fitted using \code{\link{geeglm}}.}
-\item{numerator}{specifies the right-hand side of the model used to estimate the elements in the numerator of the inverse probability weights. When left unspecified, unstabilized weights, with a numerator of 1, are estimated.}
-\item{denominator}{specifies the right-hand side of the model used to estimate the elements in the denominator of the inverse probability weights.}
+\item{numerator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the numerator of the inverse probability weights. When left unspecified, unstabilized weights, with a numerator of 1, are estimated.}
+\item{denominator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the denominator of the inverse probability weights.}
 \item{id}{vector, uniquely identifying the units under observation (typically patients) within which the longitudinal measurements are taken.}
 \item{tstart}{numerical vector, representing the starting time of follow-up intervals, using the counting process notation. This argument is only needed when \code{family=} \code{"survival"}, otherwise it is ignored. The Cox proportional hazards models are fitted using counting process data. Since a switch in exposure level can occur at the start of follow-up, \code{tstart} should be negative for the first interval (with \code{timevar=0}) within each patient.}
 \item{timevar}{numerical vector, representing follow-up time, starting at \code{0}. This variable is used as the end time of follow-up intervals, using the counting process notation, when \code{family="survival"}.}
 \item{type}{specifies the type of exposure. Alternatives are \code{"first"} and \code{"all"}. With \code{type="first"}, weights are estimated up to the first switch from the lowest exposure value (typically \code{0} or the first factor level) to any other value. After this switch, weights will then be constant. Such a weight is e.g. used when estimating the effect of ``initiation of HAART'' on mortality (see example below). With \code{type="all"}, all time points are used to estimate weights. Currently, only \code{"first"} is implemented for \code{"binomial"}, \code{"survival"}, \code{"multinomial"} and \code{"ordinal"} families. Only value \code{"all"} is implemented for the \code{"gaussian"} family.}
 \item{data}{dataframe containing \code{exposure}, variables in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar}.}
 \item{corstr}{correlation structure, only needed when using \code{family="gaussian"}. Defaults to "ar1". See \code{\link{geeglm}} for details.}
-\item{trim}{optional trim percentile (0-0.5). When specified, both untrimmed and trimmed weights are returned.}
-\item{...}{further arguments passed to the functions used to estimate the \code{numerator} and \code{denominator} models (see \code{family} and \code{link}).}
+\item{trim}{optional trim percentile (0-0.5). E.g. when \code{trim=0.01}, the left tail is trimmed to the 1st percentile, and the right tail is trimmed to the 99th percentile.When specified, both untrimmed and trimmed weights are returned.}
+\item{...}{are further arguments passed to the functions that are used to estimate the numerator and denominator models (the functions are chosen using \code{family} and \code{link}).}
 }
 
 \details{
@@ -43,12 +43,12 @@ A list containing the following elements:
 \item{ipw.weights }{vector containing inverse probability weights for each observation. Returned in the same order as the observations in \code{data}, to facilitate merging.}
 \item{weights.trimmed }{vector containing trimmed inverse probability weights, only returned when \code{trim} is specified.}
 \item{call }{the original function call.}
-\item{selvar }{selection variable. With \code{type="first"}, \code{selvar=1} within each unit under observation, up to the first time point at which a switch from the lowest value of \code{exposure} to any other value is made, and \code{selvar=0} after the first switch. For \code{type="all"}, \code{selvar=1} for all measurements. The numerator and denominator models are fitted only on observations with \code{selvar=1}. Returned in the same order as observations in \code{data}, to facilitate merging.}
+\item{selvar }{selection variable. With \code{type="first"}, \code{selvar=1} within each unit under observation, up to and including the first time point at which a switch from the lowest value of \code{exposure} to any other value is made, and \code{selvar=0} after the first switch. For \code{type="all"}, \code{selvar=1} for all measurements. The numerator and denominator models are fitted only on observations with \code{selvar=1}. Returned in the same order as observations in \code{data}, to facilitate merging.}
 \item{num.mod }{the numerator model, only returned when \code{numerator} is specified.}
 \item{den.mod }{the denominator model.}
 }
 
-\section{Missing values}{The \code{exposure} variable and the variables used in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar} should not contain missing values.}
+\section{Missing values}{Currently, the \code{exposure} variable and the variables used in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar} should not contain missing values.}
 
 \references{
 Cole, S. R. & Hernán, M. A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \emph{168}(6), 656-664.
@@ -62,7 +62,7 @@ Robins, J. M., Hernán, M. A. & Brumback, B. A. (2000). Marginal structural model
 }
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
+\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
 ########################################################################
@@ -165,48 +165,6 @@ data(timedat)
       summary(coxph(Surv(tstart, fuptime, event) ~ tb, data = startstop))
    #adjusted using conditioning: part of the effect of TB is adjusted away
       summary(coxph(Surv(tstart, fuptime, event) ~ tb + cd4.sqrt, data = startstop))
-
-#compute bootstrap CI for TB parameter (takes a few hours)
-#   #robust with regard to weights unequal to 1
-#   boot.fun <- function(data, index, data.tm){
-#      data.samp <- data[index,]
-#      data.samp$id.samp <- 1:nrow(data.samp)
-#      data.tm.samp <- do.call("rbind", lapply(data.samp$id.samp, function(id.samp)
-#         cbind(data.tm[data.tm$id == data.samp$id[data.samp$id.samp == id.samp],],
-#         id.samp = id.samp)))
-#      cd4.lme <- lme(cd4.sqrt ~ fuptime + tb.lag, random = ~ fuptime | id.samp,
-#         data = data.tm.samp)
-#      times <- sort(unique(c(data.samp$Ttb, data.samp$Tend)))
-#      startstop.samp <- data.frame(id.samp = rep(data.samp$id.samp,
-#         each = length(times)), fuptime = rep(times, nrow(data.samp)))
-#      startstop.samp <- merge(startstop.samp, data.samp, by = "id.samp",
-#          all.x = TRUE)
-#      startstop.samp <- startstop.samp[with(startstop.samp, fuptime <= Tend),]
-#      startstop.samp$tstart <- tstartfun(id.samp, fuptime, startstop.samp)
-#      startstop.samp$tb <- ifelse(with(startstop.samp, !is.na(Ttb) &
-#          fuptime >= Ttb), 1, 0)
-#      startstop.samp$tb.lag <- ifelse(with(startstop.samp, !is.na(Ttb) &
-#          fuptime > Ttb), 1, 0)
-#      startstop.samp$event <- ifelse(with(startstop.samp, !is.na(Tdeath) &
-#          fuptime >= Tdeath), 1, 0)
-#      startstop.samp$cd4.sqrt <- predict(cd4.lme, newdata = data.frame(id.samp =
-#         startstop.samp$id.samp, fuptime = startstop.samp$fuptime, tb.lag =
-#         startstop.samp$tb.lag))
-#      return(coef(coxph(Surv(tstart, fuptime, event) ~ tb, data = startstop.samp,
-#         weights = ipwtm(
-#            exposure = tb,
-#            family = "survival",
-#            numerator = ~ 1,
-#            denominator = ~ cd4.sqrt,
-#            id = id.samp,
-#            tstart = tstart,
-#            timevar = fuptime,
-#            type = "first",
-#            data = startstop.samp)$ipw.weights))[1])
-#      }
-#   bootres <- boot(data = basdat, statistic = boot.fun, R = 999,
-#      data.tm = timedat);bootres
-#   boot.ci(bootres, type = "basic")
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the

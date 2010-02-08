@@ -21,8 +21,8 @@ ipwplot(weights, timevar = NULL, binwidth = NULL, logscale = TRUE,
 \item{timevar}{numerical vector representing follow-up time. When specified, boxplots within strata of follow-up time are displayed. When left unspecified, a density plot is displayed.}
 \item{binwidth}{numerical value indicating the width of the intervals of follow-up time; for each interval a boxplot is made. Ignored when \code{timevar} is not specified.}
 \item{logscale}{logical value. If \code{TRUE}, weights are plotted on a logarithmic scale.}
-\item{xlab}{label for the horizontal axis. When left unspecified, the name of the quantity on the horizontal axis is used.}
-\item{ylab}{label for the vertical axis. When left unspecified, the name of the quantity on the vertical axis is used.}
+\item{xlab}{label for the horizontal axis.}
+\item{ylab}{label for the vertical axis.}
 \item{main}{main title for the plot.}
 \item{ref}{logical value. If \code{TRUE}, a reference line is plotted at \code{y=1}.}
 \item{\dots}{additional arguments passed to \code{\link{boxplot}} (when \code{timevar} is specified) or \code{\link{plot}} (when \code{timevar} is not specified).}
@@ -41,7 +41,7 @@ A plot is displayed.
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
+\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
 #see ?ipwpoint and ?ipwtm for examples

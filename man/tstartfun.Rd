@@ -30,7 +30,7 @@ tstartfun(id, timevar, data)
 
 \value{Numerical vector containing starting time for each record. In the same order as the records in \code{data}, to facilitate merging.}
 
-\section{Missing values}{\code{id} and \code{timevar} should not contain missing values.}
+\section{Missing values}{Currently, \code{id} and \code{timevar} should not contain missing values.}
 
 \references{
 %% ~put references to the literature/web site here ~
@@ -44,7 +44,7 @@ tstartfun(id, timevar, data)
 
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
-\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
+\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
 #data

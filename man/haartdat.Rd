@@ -36,7 +36,7 @@ Patients can initiate HAART at \code{fuptime=0}. Therefore, to allow the fitting
 
 \author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
 
-\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{healthdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
+\seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
 \examples{
 #see ?ipwtm for example
