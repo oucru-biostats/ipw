@@ -5,7 +5,7 @@ ipwpoint <- function(
 	numerator = NULL,
 	denominator,
 	data,
-	trim = NULL,
+	trunc = NULL,
 	...)
 	{
 		#save input
@@ -20,7 +20,7 @@ ipwpoint <- function(
 			if (!is.null(tempcall$denominator) & !is(eval(tempcall$denominator), "formula")) stop("Invalid denominator formula specified")
 			if (tempcall$family %in% c("gaussian") & !("numerator" %in% names(tempcall))) stop("Numerator necessary for family = \"gaussian\"")
 			if (!("data" %in% names(tempcall))) stop("No data specified")
-			if (!is.null(tempcall$trim)) {if(tempcall$trim < 0 | tempcall$trim > 0.5) stop("Invalid trim percentage specified (0-0.5)")}
+			if (!is.null(tempcall$trunc)) {if(tempcall$trunc < 0 | tempcall$trunc > 0.5) stop("Invalid truncation percentage specified (0-0.5)")}
 		#make new dataframe for newly computed variables, to prevent variable name conflicts
 			tempdat <- data.frame(
 				exposure = data[,as.character(tempcall$exposure)]
@@ -148,19 +148,19 @@ ipwpoint <- function(
 			}
 		#check for NA's in weights
 			if (sum(is.na(tempdat$ipw.weights)) > 0) stop ("NA's in weights!")
-		#trim weights, when trim value is specified (0-0.5)
-			if (!(is.null(tempcall$trim))){
-				tempdat$weights.trimmed <- tempdat$ipw.weights
-				tempdat$weights.trimmed[tempdat$ipw.weights <= quantile(tempdat$ipw.weights, 0+trim)] <- quantile(tempdat$ipw.weights, 0+trim)
-				tempdat$weights.trimmed[tempdat$ipw.weights >  quantile(tempdat$ipw.weights, 1-trim)] <- quantile(tempdat$ipw.weights, 1-trim)
+		#truncate weights, when trunc value is specified (0-0.5)
+			if (!(is.null(tempcall$trunc))){
+				tempdat$weights.trunc <- tempdat$ipw.weights
+				tempdat$weights.trunc[tempdat$ipw.weights <= quantile(tempdat$ipw.weights, 0+trunc)] <- quantile(tempdat$ipw.weights, 0+trunc)
+				tempdat$weights.trunc[tempdat$ipw.weights >  quantile(tempdat$ipw.weights, 1-trunc)] <- quantile(tempdat$ipw.weights, 1-trunc)
 			}
 		#return results in the same order as the original input dataframe
-			if (is.null(tempcall$trim)){
+			if (is.null(tempcall$trunc)){
 				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights, call = tempcall, den.mod = mod2))
 				else return(list(ipw.weights = tempdat$ipw.weights, call = tempcall, num.mod = mod1, den.mod = mod2))
 			}
 			else{
-				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights, weights.trimmed = tempdat$weights.trimmed, call = tempcall, den.mod = mod2))
-				else return(list(ipw.weights = tempdat$ipw.weights, weights.trimmed = tempdat$weights.trimmed, call = tempcall, num.mod = mod1, den.mod = mod2))
+				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights, weights.trunc = tempdat$weights.trunc, call = tempcall, den.mod = mod2))
+				else return(list(ipw.weights = tempdat$ipw.weights, weights.trunc = tempdat$weights.trunc, call = tempcall, num.mod = mod1, den.mod = mod2))
 			}
 }

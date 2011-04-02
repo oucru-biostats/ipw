@@ -10,7 +10,7 @@ ipwtm <- function(
 	type,
 	data,
 	corstr = "ar1",
-	trim = NULL,
+	trunc = NULL,
 	...)
 	{
 		#save input
@@ -28,11 +28,11 @@ ipwtm <- function(
 			if (!("timevar" %in% names(tempcall))) stop("No timevar specified")
 			if (!("type" %in% names(tempcall))) stop("No type specified (\"first\" or \"all\")")
 			if (!(tempcall$type %in% c("first", "all"))) stop("No type specified (\"first\" or \"all\")")
-			if (tempcall$family %in% c("binomial", "survival", "multinomial", "ordinal") & tempcall$type == "all") stop(paste("Type \"all\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
+			if (tempcall$family %in% c("survival", "multinomial", "ordinal") & tempcall$type == "all") stop(paste("Type \"all\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
 			if (tempcall$family %in% c("gaussian") & tempcall$type == "first") stop(paste("Type \"first\" not implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
 			if (tempcall$family %in% c("gaussian") & !("numerator" %in% names(tempcall))) stop("Numerator necessary for family = \"gaussian\"")
 			if (!("data" %in% names(tempcall))) stop("No data specified")
-			if (!is.null(tempcall$trim)) {if(tempcall$trim < 0 | tempcall$trim > 0.5) stop("Invalid trim percentage specified (0-0.5)")}
+			if (!is.null(tempcall$trunc)) {if(tempcall$trunc < 0 | tempcall$trunc > 0.5) stop("Invalid truncation percentage specified (0-0.5)")}
 		#record original order of dataframe so that the output can be returned in the same order
 			order.orig <- 1:nrow(data)
 			order.orig <- order.orig[order(
@@ -60,9 +60,9 @@ ipwtm <- function(
 			}
 			if (type == "all")
 				{tempdat$selvar <- rep(1, nrow(tempdat))}
-		#weights binomial
+		#weights binomial, type "first"
 			require(stats)
-			if (tempcall$family == "binomial") {
+			if (tempcall$family == "binomial" & tempcall$type == "first") {
 				if(tempcall$link == "logit") lf <- binomial(link = logit)
 				if(tempcall$link == "probit") lf  <- binomial(link = probit)
 				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
@@ -105,6 +105,45 @@ ipwtm <- function(
 				mod2$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
+		#weights binomial, type "all"
+			require(stats)
+			if (tempcall$family == "binomial" & tempcall$type == "all") {
+				if(tempcall$link == "logit") lf <- binomial(link = logit)
+				if(tempcall$link == "probit") lf  <- binomial(link = probit)
+				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
+				if(tempcall$link == "log") lf  <- binomial(link = log)
+				if(tempcall$link == "cloglog") lf  <- binomial(link = cloglog)
+				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
+				else {
+					mod1 <- glm(
+						formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),
+						family = lf,
+						data = data,
+						na.action = na.fail,
+						...)
+					tempdat$p.numerator <- vector("numeric", nrow(tempdat))
+					tempdat$p.numerator[tempdat$exposure == 0] <- 1 - predict.glm(mod1, type = "response")[tempdat$exposure == 0]
+					tempdat$p.numerator[tempdat$exposure == 1] <- predict.glm(mod1, type = "response")[tempdat$exposure == 1]
+					tempdat$w.numerator <- unlist(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)))
+						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
+						mod1$call$family <- tempcall$link
+						mod1$call$data <- tempcall$data
+				}
+				mod2 <- glm(
+					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
+					family = lf,
+					data = data,
+					na.action = na.fail,
+					...)
+				tempdat$p.denominator <- vector("numeric", nrow(tempdat))
+				tempdat$p.denominator[tempdat$exposure == 0] <- 1 - predict.glm(mod2, type = "response")[tempdat$exposure == 0]
+				tempdat$p.denominator[tempdat$exposure == 1] <- predict.glm(mod2, type = "response")[tempdat$exposure == 1]
+				tempdat$w.denominator <- unlist(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)))
+				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
+				mod2$call$family <- tempcall$link
+				mod2$call$data <- tempcall$data
+				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
+			}
 		#weights Cox
 			require(survival)
 			if (tempcall$family == "survival") {
@@ -135,7 +174,6 @@ ipwtm <- function(
 					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)), tempdat$id)
 					mod1$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
-					mod1$call$subset <- paste("up to first instance of ", deparse(tempcall$exposure, width.cutoff = 500), " = 1 (selvar == 1)", sep = "")
 				}
 				mod2 <- coxph(
 					formula = eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$denominator, width.cutoff = 500), sep = ""))),
@@ -270,19 +308,19 @@ ipwtm <- function(
 			}
 		#check for NA's in weights
 			if (sum(is.na(tempdat$ipw.weights)) > 0) stop ("NA's in weights!")
-		#trim weights, when trim value is specified (0-0.5)
-			if (!(is.null(tempcall$trim))){
-				tempdat$weights.trimmed <- tempdat$ipw.weights
-				tempdat$weights.trimmed[tempdat$ipw.weights <= quantile(tempdat$ipw.weights, 0+trim)] <- quantile(tempdat$ipw.weights, 0+trim)
-				tempdat$weights.trimmed[tempdat$ipw.weights >  quantile(tempdat$ipw.weights, 1-trim)] <- quantile(tempdat$ipw.weights, 1-trim)
+		#truncate weights, when trunc value is specified (0-0.5)
+			if (!(is.null(tempcall$trunc))){
+				tempdat$weights.trunc <- tempdat$ipw.weights
+				tempdat$weights.trunc[tempdat$ipw.weights <= quantile(tempdat$ipw.weights, 0+trunc)] <- quantile(tempdat$ipw.weights, 0+trunc)
+				tempdat$weights.trunc[tempdat$ipw.weights >  quantile(tempdat$ipw.weights, 1-trunc)] <- quantile(tempdat$ipw.weights, 1-trunc)
 			}
 		#return results in the same order as the original input dataframe
-			if (is.null(tempcall$trim)){
+			if (is.null(tempcall$trunc)){
 				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], den.mod = mod2))
 				else return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], num.mod = mod1, den.mod = mod2))
 			}
 			else{
-				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], weights.trimmed = tempdat$weights.trimmed[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], den.mod = mod2))
-				else return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], weights.trimmed = tempdat$weights.trimmed[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], num.mod = mod1, den.mod = mod2))
+				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], weights.trunc = tempdat$weights.trunc[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], den.mod = mod2))
+				else return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], weights.trunc = tempdat$weights.trunc[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], num.mod = mod1, den.mod = mod2))
 			}
 }

@@ -8,11 +8,11 @@
 \description{Estimate inverse probability weights to fit marginal structural models, with a time-varying exposure and time-varying confounders. Within each unit under observation this function computes inverse probability weights at each time point during follow-up. The exposure can be binomial, multinomial, ordinal or continuous. Both stabilized and unstabilized weights can be estimated.}
 
 \usage{ipwtm(exposure, family, link, numerator = NULL, denominator, id,
-       tstart, timevar, type, data, corstr = "ar1", trim = NULL,
+       tstart, timevar, type, data, corstr = "ar1", trunc = NULL,
        ...)}
 
 \arguments{
-\item{exposure}{vector, representing the exposure of interest. Both numerical and categorical variables can be used. A binomial exposure variable should be coded using values \code{0}/\code{1}}
+\item{exposure}{vector, representing the exposure of interest. Both numerical and categorical variables can be used. A binomial exposure variable should be coded using values \code{0}/\code{1}.}
 \item{family}{specifies a family of link functions, used to model the relationship between the variables in \code{numerator} or \code{denominator} and \code{exposure}, respectively. Alternatives are \code{"binomial"}, \code{"survival"}, \code{"multinomial"}, \code{"ordinal"} and \code{"gaussian"}. A specific link function is then chosen using the argument \code{link}, as explained below. Regression models are fitted using \code{\link{glm}}, \code{\link{coxph}}, \code{\link{multinom}}, \code{\link{polr}} or \code{\link{geeglm}}, respectively.}
 \item{link}{specifies the specific link function between the variables in \code{numerator} or \code{denominator} and exposure, respectively. For \code{family="binomial"} (fitted using \code{\link{glm}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, \code{"log"} and \code{"cloglog"}. For \code{family="survival"} this argument is ignored, and Cox proportional hazards models are always used (fitted using \code{\link{coxph}}). For \code{family="multinomial"} this argument is ignored, and multinomial logistic regression models are always used (fitted using \code{\link{multinom}}). For \code{family=} \code{"ordinal"} (fitted using \code{\link{polr}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, and \code{"cloglog"}. For \code{family="gaussian"} this argument is ignored, and GEE models with an identity link are always used (fitted using \code{\link{geeglm}}.}
 \item{numerator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the numerator of the inverse probability weights. When left unspecified, unstabilized weights with a numerator of 1 are estimated.}
@@ -20,10 +20,10 @@
 \item{id}{vector, uniquely identifying the units under observation (typically patients) within which the longitudinal measurements are taken.}
 \item{tstart}{numerical vector, representing the starting time of follow-up intervals, using the counting process notation. This argument is only needed when \code{family=} \code{"survival"}, otherwise it is ignored. The Cox proportional hazards models are fitted using counting process data. Since a switch in exposure level can occur at the start of follow-up, \code{tstart} should be negative for the first interval (with \code{timevar=0}) within each patient.}
 \item{timevar}{numerical vector, representing follow-up time, starting at \code{0}. This variable is used as the end time of follow-up intervals, using the counting process notation, when \code{family="survival"}.}
-\item{type}{specifies the type of exposure. Alternatives are \code{"first"} and \code{"all"}. With \code{type="first"}, weights are estimated up to the first switch from the lowest exposure value (typically \code{0} or the first factor level) to any other value. After this switch, weights will then be constant. Such a weight is e.g. used when estimating the effect of ``initiation of HAART'' on mortality (see example below). With \code{type="all"}, all time points are used to estimate weights. Currently, only \code{"first"} is implemented for \code{"binomial"}, \code{"survival"}, \code{"multinomial"} and \code{"ordinal"} families. Only value \code{"all"} is implemented for the \code{"gaussian"} family.}
+\item{type}{specifies the type of exposure. Alternatives are \code{"first"} and \code{"all"}. With \code{type="first"}, weights are estimated up to the first switch from the lowest exposure value (typically \code{0} or the first factor level) to any other value. After this switch, weights will then be constant. Such a weight is e.g. used when estimating the effect of ``initiation of HAART'' on mortality (see example below). With \code{type="all"}, all time points are used to estimate weights. Currently, only \code{"first"} is implemented for \code{"survival"}, \code{"multinomial"} and \code{"ordinal"} families. Only value \code{"all"} is implemented for the \code{"gaussian"} family. Both \code{type="first"} and \code{type="all"} are implemented for the \code{"binomial"} family.}
 \item{data}{dataframe containing \code{exposure}, variables in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar}.}
 \item{corstr}{correlation structure, only needed when using \code{family="gaussian"}. Defaults to "ar1". See \code{\link{geeglm}} for details.}
-\item{trim}{optional trim percentile (0-0.5). E.g. when \code{trim=0.01}, the left tail is trimmed to the 1st percentile, and the right tail is trimmed to the 99th percentile.When specified, both untrimmed and trimmed weights are returned.}
+\item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc=0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile. When specified, both un-truncated and truncated weights are returned.}
 \item{...}{are further arguments passed to the function that is used to estimate the numerator and denominator models (the function is chosen using \code{family}).}
 }
 
@@ -41,7 +41,7 @@ With \code{numerator} specified, stabilized weights are computed, otherwise unst
 \value{
 A list containing the following elements:
 \item{ipw.weights }{vector containing inverse probability weights for each observation. Returned in the same order as the observations in \code{data}, to facilitate merging.}
-\item{weights.trimmed }{vector containing trimmed inverse probability weights, only returned when \code{trim} is specified.}
+\item{weights.trunc }{vector containing truncated inverse probability weights, only returned when \code{trunc} is specified.}
 \item{call }{the original function call.}
 \item{selvar }{selection variable. With \code{type="first"}, \code{selvar=1} within each unit under observation, up to and including the first time point at which a switch from the lowest value of \code{exposure} to any other value is made, and \code{selvar=0} after the first switch. For \code{type="all"}, \code{selvar=1} for all measurements. The numerator and denominator models are fitted only on observations with \code{selvar=1}. Returned in the same order as observations in \code{data}, to facilitate merging.}
 \item{num.mod }{the numerator model, only returned when \code{numerator} is specified.}
@@ -88,15 +88,34 @@ temp <- ipwtm(
 #plot inverse probability weights
 graphics.off()
 ipwplot(weights = temp$ipw.weights, timevar = haartdat$fuptime,
-   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized weights")
+   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized inverse probability weights")
 
-#MSM for the causal effect of initiation of HAART on mortality
-#corrected for confounding by CD4 count using inverse probability weighting
-#with robust standard error obtained using cluster().
+#CD4 count has an effect both on dropout and mortality, which causes informative censoring.
+#Use inverse probability of censoring weighting to correct for effect of CD4 on dropout.
+#Use Cox proportional hazards model for dropout.
+temp2 <- ipwtm(
+   exposure = dropout,
+   family = "survival",
+   numerator = ~ sex + age,
+   denominator = ~ sex + age + cd4.sqrt,
+   id = patient,
+   tstart = tstart,
+   timevar = fuptime,
+   type = "first",
+   data = haartdat)
+
+#plot inverse probability of censoring weights
+graphics.off()
+ipwplot(weights = temp2$ipw.weights, timevar = haartdat$fuptime,
+   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized inverse probability of censoring weights")
+
+#MSM for the causal effect of initiation of HAART on mortality.
+#Corrected both for confounding and informative censoring.
+#With robust standard error obtained using cluster().
 summary(coxph(Surv(tstart, fuptime, event) ~ haartind + cluster(patient),
-   data = haartdat, weights = temp$ipw.weights))   
+   data = haartdat, weights = temp$ipw.weights*temp2$ipw.weights))   
 
-#Uncorrected model
+#uncorrected model
 summary(coxph(Surv(tstart, fuptime, event) ~ haartind, data = haartdat))
 
 ########################################################################

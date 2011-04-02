@@ -9,7 +9,7 @@
 
 \usage{
 ipwpoint(exposure, family, link, numerator = NULL, denominator,
-         data, trim = NULL, ...)
+         data, trunc = NULL, ...)
 }
 
 \arguments{
@@ -19,7 +19,7 @@ ipwpoint(exposure, family, link, numerator = NULL, denominator,
 \item{numerator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the numerator of the inverse probability weights. When left unspecified, unstabilized weights with a numerator of 1 are estimated.}
 \item{denominator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the denominator of the inverse probability weights. This typically includes the variables specified in the numerator model, as well as confounders for which to correct.}
 \item{data}{is a dataframe containing \code{exposure} and the variables used in \code{numerator} and \code{denominator}.}
-\item{trim}{optional trim percentile (0-0.5). E.g. when \code{trim=0.01}, the left tail is trimmed to the 1st percentile, and the right tail is trimmed to the 99th percentile.When specified, both untrimmed and trimmed weights are returned.}
+\item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc=0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile.When specified, both un-truncated and truncated weights are returned.}
 \item{...}{are further arguments passed to the function that is used to estimate the numerator and denominator models (the function is chosen using \code{family}).}
 }
 
@@ -37,7 +37,7 @@ With \code{numerator} specified, stabilized weights are computed, otherwise unst
 \value{
 A list containing the following elements:
 \item{ipw.weights }{is a vector containing inverse probability weights for each unit under observation. This vector is returned in the same order as the measurements contained in \code{data}, to facilitate merging.}
-\item{weights.trimmed }{is a vector containing trimmed inverse probability weights for each unit under observation. This vector is only returned when \code{trim} is specified.}
+\item{weights.trunc }{is a vector containing truncated inverse probability weights for each unit under observation. This vector is only returned when \code{trunc} is specified.}
 \item{call }{is the original function call to \code{ipwpoint}.}
 \item{num.mod }{is the numerator model, only returned when \code{numerator} is specified.}
 \item{den.mod }{is the denominator model.}
