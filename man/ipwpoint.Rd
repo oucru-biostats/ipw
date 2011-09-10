@@ -1,7 +1,6 @@
 \name{ipwpoint}
 \Rdversion{1.1}
 \alias{ipwpoint}
-%- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{Estimate Inverse Probability Weights (Point Treatment)}
 
@@ -15,11 +14,11 @@ ipwpoint(exposure, family, link, numerator = NULL, denominator,
 \arguments{
 \item{exposure}{a vector, representing the exposure variable of interest. Both numerical and categorical variables can be used. A binomial exposure variable should be coded using values \code{0}/\code{1}.}
 \item{family}{is used to specify a family of link functions, used to model the relationship between the variables in \code{numerator} or \code{denominator} and \code{exposure}, respectively. Alternatives are \code{"binomial"},\code{"multinomial"}, \code{"ordinal"} and \code{"gaussian"}. A specific link function is then chosen using the argument \code{link}, as explained below. Regression models are fitted using \code{\link{glm}}, \code{\link{multinom}}, \code{\link{polr}} or \code{\link{glm}}, respectively.}
-\item{link}{specifies the link function between the variables in \code{numerator} or \code{denominator} and \code{exposure}, respectively. For \code{family="binomial"} (fitted using \code{\link{glm}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, \code{"log"} and \code{"cloglog"}. For \code{family="multinomial"} this argument is ignored, and multinomial logistic regression models are always used (fitted using \code{\link{multinom}}). For \code{family=} \code{"ordinal"} (fitted using \code{\link{polr}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, and \code{"cloglog"}. For \code{family="gaussian"} this argument is ignored, and a linear regression model with identity link is always used (fitted using \code{\link{glm}}).}
+\item{link}{specifies the link function between the variables in \code{numerator} or \code{denominator} and \code{exposure}, respectively. For \code{family = "binomial"} (fitted using \code{\link{glm}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, \code{"log"} and \code{"cloglog"}. For \code{family = "multinomial"} this argument is ignored, and multinomial logistic regression models are always used (fitted using \code{\link{multinom}}). For \code{family = }\code{"ordinal"} (fitted using \code{\link{polr}}) alternatives are \code{"logit"}, \code{"probit"}, \code{"cauchit"}, and \code{"cloglog"}. For \code{family = "gaussian"} this argument is ignored, and a linear regression model with identity link is always used (fitted using \code{\link{glm}}).}
 \item{numerator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the numerator of the inverse probability weights. When left unspecified, unstabilized weights with a numerator of 1 are estimated.}
 \item{denominator}{is a formula, specifying the right-hand side of the model used to estimate the elements in the denominator of the inverse probability weights. This typically includes the variables specified in the numerator model, as well as confounders for which to correct.}
 \item{data}{is a dataframe containing \code{exposure} and the variables used in \code{numerator} and \code{denominator}.}
-\item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc=0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile.When specified, both un-truncated and truncated weights are returned.}
+\item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc = 0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile.When specified, both un-truncated and truncated weights are returned.}
 \item{...}{are further arguments passed to the function that is used to estimate the numerator and denominator models (the function is chosen using \code{family}).}
 }
 
@@ -31,7 +30,7 @@ For each unit under observation, this function computes an inverse probability w
 
 When the models from which the elements in the numerator and denominator are predicted are correctly specified, and there is no unmeasured confounding, weighting the observations by the inverse probability weights adjusts for confounding of the effect of the exposure of interest. On the weighted dataset a marginal structural model can then be fitted, quantifying the causal effect of the exposure on the outcome of interest.
 
-With \code{numerator} specified, stabilized weights are computed, otherwise unstabilized weighs with a numerator of 1 are computed. With a continuous exposure, using \code{family="gaussian"}, weights are computed using the ratio of predicted densities. Therefore, for \code{family="gaussian"} only stabilized weights can be used, since unstabilized weights would have infinity variance.
+With \code{numerator} specified, stabilized weights are computed, otherwise unstabilized weighs with a numerator of 1 are computed. With a continuous exposure, using \code{family = "gaussian"}, weights are computed using the ratio of predicted densities. Therefore, for \code{family = "gaussian"} only stabilized weights can be used, since unstabilized weights would have infinity variance.
 }
 
 \value{
@@ -46,18 +45,14 @@ A list containing the following elements:
 \section{Missing values}{Currently, the \code{exposure} variable and the variables used in \code{numerator} and \code{denominator} should not contain missing values.}
 
 \references{
-Cole, S. R. & Hernán, M. A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \emph{168}(6), 656-664.
+Cole, S.R. & Hernán, M.A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \bold{168}(6), 656-664.
 
-Robins, J. M., Hernán, M. A. & Brumback, B. A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \emph{11}, 550-560.
+Robins, J.M., Hernán, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560.
+
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
 }
 
 \author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
-
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
@@ -97,8 +92,8 @@ simdat$sw <- temp$ipw.weights
 #Marginal structural model for the causal effect of a on y
 #corrected for confounding by l using inverse probability weighting
 #with robust standard error from the survey package.
-msm <- (svyglm(y ~ a, design=svydesign(~1, weights=~sw,
-   data=simdat)))
+msm <- (svyglm(y ~ a, design = svydesign(~ 1, weights = ~ sw,
+   data = simdat)))
 coef(msm)
 confint(msm)
 
@@ -119,7 +114,5 @@ confint(msm)
 
 }
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{htest}
 \keyword{models}

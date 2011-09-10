@@ -27,11 +27,8 @@ Survival data measured in 1200 HIV positive patients. Start of follow-up is HIV 
 Patients can initiate HAART at \code{fuptime=0}. Therefore, to allow the fitting of a model predicting initiation of HAART, starting time for the first interval within each patient is negative (-100).
 }
 
-\source{
-%%  ~~ reference to a publication or URL from which the data were obtained ~~
-}
 \references{
-%%  ~~ possibly secondary sources and usages ~~
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
 }
 
 \author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}

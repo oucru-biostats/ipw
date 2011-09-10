@@ -1,7 +1,6 @@
 \name{tstartfun}
 \Rdversion{1.1}
 \alias{tstartfun}
-%- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{Compute Starting Time For Counting Process Notation}
 
@@ -23,25 +22,15 @@ tstartfun(id, timevar, data)
 }
 
 
-\details{
-%%  ~~ If necessary, more details than the description above ~~
-}
-
 \value{Numerical vector containing starting time for each record. In the same order as the records in \code{data}, to facilitate merging.}
 
 \section{Missing values}{Currently, \code{id} and \code{timevar} should not contain missing values.}
 
 \references{
-%% ~put references to the literature/web site here ~
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
 }
 
 \author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
-
-\note{
-%%  ~~further notes~~
-}
-
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
@@ -60,8 +49,6 @@ mydata1
 #see also ?ipwtm for example
 }
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{methods}
 \keyword{survival}
 

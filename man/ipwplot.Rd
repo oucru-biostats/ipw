@@ -1,7 +1,6 @@
 \name{ipwplot}
 \Rdversion{1.1}
 \alias{ipwplot}
-%- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{Plot Inverse Probability Weights
 }
@@ -14,7 +13,6 @@ For point treatment weights: display density plot.
 ipwplot(weights, timevar = NULL, binwidth = NULL, logscale = TRUE,
         xlab = NULL, ylab = NULL, main = "", ref = TRUE, ...)
 }
-%- maybe also 'usage' for other objects documented here.
 
 \arguments{
 \item{weights}{numerical vector of inverse probability weights to plot.}
@@ -32,14 +30,11 @@ ipwplot(weights, timevar = NULL, binwidth = NULL, logscale = TRUE,
 A plot is displayed.
 }
 
-
-\author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
-
-\note{
-%%  ~~further notes~~
+\references{
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
 }
 
-%% ~Make other sections like Warning with \section{Warning }{....} ~
+\author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
 
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
@@ -47,6 +42,4 @@ A plot is displayed.
 #see ?ipwpoint and ?ipwtm for examples
 }
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{hplot}

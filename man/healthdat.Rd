@@ -21,11 +21,8 @@ A data frame with 1000 rows, with each row corresponding to a separate individua
 In these simulated data, IQ is a confounder for the effect of income on health. 
 }
 
-\source{
-%%  ~~ reference to a publication or URL from which the data were obtained ~~
-}
 \references{
-%%  ~~ possibly secondary sources and usages ~~
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
 }
 
 \author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}

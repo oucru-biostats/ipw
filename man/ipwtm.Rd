@@ -1,7 +1,6 @@
 \name{ipwtm}
 \Rdversion{1.1}
 \alias{ipwtm}
-%- Also NEED an '\alias' for EACH other topic documented here.
 
 \title{Estimate Inverse Probability Weights (Time Varying)}
 
@@ -22,8 +21,8 @@
 \item{timevar}{numerical vector, representing follow-up time, starting at \code{0}. This variable is used as the end time of follow-up intervals, using the counting process notation, when \code{family="survival"}.}
 \item{type}{specifies the type of exposure. Alternatives are \code{"first"} and \code{"all"}. With \code{type="first"}, weights are estimated up to the first switch from the lowest exposure value (typically \code{0} or the first factor level) to any other value. After this switch, weights will then be constant. Such a weight is e.g. used when estimating the effect of ``initiation of HAART'' on mortality (see example below). With \code{type="all"}, all time points are used to estimate weights. Currently, only \code{"first"} is implemented for \code{"survival"}, \code{"multinomial"} and \code{"ordinal"} families. Only value \code{"all"} is implemented for the \code{"gaussian"} family. Both \code{type="first"} and \code{type="all"} are implemented for the \code{"binomial"} family.}
 \item{data}{dataframe containing \code{exposure}, variables in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar}.}
-\item{corstr}{correlation structure, only needed when using \code{family="gaussian"}. Defaults to "ar1". See \code{\link{geeglm}} for details.}
-\item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc=0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile. When specified, both un-truncated and truncated weights are returned.}
+\item{corstr}{correlation structure, only needed when using \code{family = "gaussian"}. Defaults to "ar1". See \code{\link{geeglm}} for details.}
+\item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc = 0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile. When specified, both un-truncated and truncated weights are returned.}
 \item{...}{are further arguments passed to the function that is used to estimate the numerator and denominator models (the function is chosen using \code{family}).}
 }
 
@@ -35,7 +34,7 @@ Within each unit under observation i (usually patients), this function computes 
 
 When the models from which the elements in the numerator and denominator are predicted are correctly specified, and there is no unmeasured confounding, weighting observations ij by the inverse probability weights adjusts for confounding of the effect of the exposure of interest. On the weighted dataset a marginal structural model can then be fitted, quantifying the causal effect of the exposure on the outcome of interest.
 
-With \code{numerator} specified, stabilized weights are computed, otherwise unstabilized weights with a numerator of 1 are computed. With a continuous exposure, using \code{family="gaussian"}, weights are computed using the ratio of predicted densities at each time point. Therefore, for \code{family="gaussian"} only stabilized weights can be used, since unstabilized weights would have infinity variance.
+With \code{numerator} specified, stabilized weights are computed, otherwise unstabilized weights with a numerator of 1 are computed. With a continuous exposure, using \code{family = "gaussian"}, weights are computed using the ratio of predicted densities at each time point. Therefore, for \code{family = "gaussian"} only stabilized weights can be used, since unstabilized weights would have infinity variance.
 }
 
 \value{
@@ -43,7 +42,7 @@ A list containing the following elements:
 \item{ipw.weights }{vector containing inverse probability weights for each observation. Returned in the same order as the observations in \code{data}, to facilitate merging.}
 \item{weights.trunc }{vector containing truncated inverse probability weights, only returned when \code{trunc} is specified.}
 \item{call }{the original function call.}
-\item{selvar }{selection variable. With \code{type="first"}, \code{selvar=1} within each unit under observation, up to and including the first time point at which a switch from the lowest value of \code{exposure} to any other value is made, and \code{selvar=0} after the first switch. For \code{type="all"}, \code{selvar=1} for all measurements. The numerator and denominator models are fitted only on observations with \code{selvar=1}. Returned in the same order as observations in \code{data}, to facilitate merging.}
+\item{selvar }{selection variable. With \code{type = "first"}, \code{selvar = 1} within each unit under observation, up to and including the first time point at which a switch from the lowest value of \code{exposure} to any other value is made, and \code{selvar = 0} after the first switch. For \code{type = "all"}, \code{selvar = 1} for all measurements. The numerator and denominator models are fitted only on observations with \code{selvar = 1}. Returned in the same order as observations in \code{data}, to facilitate merging.}
 \item{num.mod }{the numerator model, only returned when \code{numerator} is specified.}
 \item{den.mod }{the denominator model.}
 }
@@ -51,16 +50,14 @@ A list containing the following elements:
 \section{Missing values}{Currently, the \code{exposure} variable and the variables used in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar} should not contain missing values.}
 
 \references{
-Cole, S. R. & Hernán, M. A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \emph{168}(6), 656-664.
+Cole, S.R. & Hernán, M.A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \bold{168}(6), 656-664.
 
-Robins, J. M., Hernán, M. A. & Brumback, B. A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \emph{11}, 550-560.
+Robins, J.M., Hernán, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560.
+
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
 }
 
 \author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
-\note{
-	%%  ~~further notes~~
-}
-%% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
@@ -219,7 +216,5 @@ data(timedat)
 #   boot.ci(bootres, type = "basic")
 }
 
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
 \keyword{htest}
 \keyword{models}
