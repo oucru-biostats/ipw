@@ -61,7 +61,6 @@ ipwtm <- function(
 			if (type == "all")
 				{tempdat$selvar <- rep(1, nrow(tempdat))}
 		#weights binomial, type "first"
-			require(stats)
 			if (tempcall$family == "binomial" & tempcall$type == "first") {
 				if(tempcall$link == "logit") lf <- binomial(link = logit)
 				if(tempcall$link == "probit") lf  <- binomial(link = probit)
@@ -106,7 +105,6 @@ ipwtm <- function(
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights binomial, type "all"
-			require(stats)
 			if (tempcall$family == "binomial" & tempcall$type == "all") {
 				if(tempcall$link == "logit") lf <- binomial(link = logit)
 				if(tempcall$link == "probit") lf  <- binomial(link = probit)
@@ -145,7 +143,6 @@ ipwtm <- function(
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights Cox
-			require(survival)
 			if (tempcall$family == "survival") {
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 					else {
@@ -166,12 +163,12 @@ ipwtm <- function(
 					temp$bashaz.cum.numerator <- NULL
 					tempdat <- merge(tempdat, temp, by = "timevar", all.x = TRUE);rm(temp)
 					tempdat <- tempdat[order(tempdat$id, tempdat$timevar),]
-					tempdat$risk.numerator[tempdat$selvar == 1] <-predict(mod1, type="risk", centered = TRUE)
+					tempdat$risk.numerator[tempdat$selvar == 1] <- predict(mod1, type="risk", centered = TRUE)
 					tempdat$hazard.numerator[tempdat$selvar == 1] <- with(tempdat[tempdat$selvar == 1,], bashaz.numerator*risk.numerator)
 					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 0)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 0),], exp(-1*bashaz.numerator*risk.numerator))
 					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.numerator*risk.numerator))
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
-					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)), tempdat$id)
+					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x) cumprod(x)), tempdat$id)
 					mod1$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
 				}
@@ -192,7 +189,7 @@ ipwtm <- function(
 				temp$bashaz.cum.denominator <- NULL
 				tempdat <- merge(tempdat, temp, by = "timevar", all.x = TRUE);rm(temp)
 				tempdat <- tempdat[order(tempdat$id, tempdat$timevar),]
-				tempdat$risk.denominator[tempdat$selvar == 1] <-predict(mod2, type="risk", centered = TRUE)
+				tempdat$risk.denominator[tempdat$selvar == 1] <- predict(mod2, type="risk", centered = TRUE)
 				tempdat$hazard.denominator[tempdat$selvar == 1] <- with(tempdat[tempdat$selvar == 1,], bashaz.denominator*risk.denominator)
 				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 0)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 0),], exp(-1*bashaz.denominator*risk.denominator))
 				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.denominator*risk.denominator))
@@ -204,7 +201,6 @@ ipwtm <- function(
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights multinomial
-			require(nnet)
 			if (tempcall$family == "multinomial") {
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
@@ -236,7 +232,6 @@ ipwtm <- function(
 				tempdat$ipw.weights <- unsplit(lapply(split(with(tempdat, p.numerator/p.denominator), tempdat$id), function(x)cumprod(x)), tempdat$id)
 			}
 		#weights ordinal
-			require(MASS)
 			if (tempcall$family == "ordinal") {
 				if(tempcall$link == "logit") m <- "logistic"
 				if(tempcall$link == "probit") m  <- "probit"
@@ -276,7 +271,6 @@ ipwtm <- function(
 				tempdat$ipw.weights <- unsplit(lapply(split(with(tempdat, p.numerator/p.denominator), tempdat$id), function(x)cumprod(x)), tempdat$id)
 			}
 		#weights gaussian
-			require(geepack)
 			if (tempcall$family == "gaussian") {
 				mod1 <- geeglm(
 					formula = eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = ""))),

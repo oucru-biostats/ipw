@@ -26,7 +26,6 @@ ipwpoint <- function(
 				exposure = data[,as.character(tempcall$exposure)]
 			)
 		#weights binomial
-			require(stats)
 			if (tempcall$family == "binomial") {
 				if(tempcall$link == "logit") lf <- binomial(link = logit)
 				if(tempcall$link == "probit") lf  <- binomial(link = probit)
@@ -63,7 +62,6 @@ ipwpoint <- function(
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights multinomial
-			require(nnet)
 			if (tempcall$family == "multinomial") {
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
@@ -91,7 +89,6 @@ ipwpoint <- function(
 				tempdat$ipw.weights <- tempdat$w.numerator/tempdat$w.denominator
 			}
 		#weights ordinal
-			require(MASS)
 			if (tempcall$family == "ordinal") {
 				if(tempcall$link == "logit") m <- "logistic"
 				if(tempcall$link == "probit") m  <- "probit"

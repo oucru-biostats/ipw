@@ -92,25 +92,30 @@ simdat$sw <- temp$ipw.weights
 #Marginal structural model for the causal effect of a on y
 #corrected for confounding by l using inverse probability weighting
 #with robust standard error from the survey package.
+require("survey")
 msm <- (svyglm(y ~ a, design = svydesign(~ 1, weights = ~ sw,
    data = simdat)))
 coef(msm)
 confint(msm)
 
+
+\dontrun{
 #Compute basic bootstrap confidence interval .
-#boot.fun <- function(dat, index){
-#    coef(glm(
-#        formula = y ~ a,
-#        data = dat[index,],
-#        weights = ipwpoint(
-#            exposure = a,
-#            family = "gaussian",
-#            numerator = ~ 1,
-#            denominator = ~ l,
-#            data = dat[index,])$ipw.weights))[2]
-#    }
-#bootres <- boot(simdat, boot.fun, 499);bootres
-#boot.ci(bootres, type = "basic")
+require(boot)
+boot.fun <- function(dat, index){
+   coef(glm(
+       formula = y ~ a,
+       data = dat[index,],
+       weights = ipwpoint(
+           exposure = a,
+           family = "gaussian",
+           numerator = ~ 1,
+           denominator = ~ l,
+           data = dat[index,])$ipw.weights))[2]
+   }
+bootres <- boot(simdat, boot.fun, 499);bootres
+boot.ci(bootres, type = "basic")
+}
 
 }
 

@@ -1,2 +1,6 @@
-import(boot, MASS, nlme, nnet, survival)
+import(survival, nnet, MASS, geepack)
+importFrom("graphics", "abline", "boxplot", "plot")
+importFrom("methods", "is")
+importFrom("stats", "approx", "binomial", "density", "dnorm", "glm",
+             "na.fail", "predict", "predict.glm", "quantile", "sd")
 export(ipwtm, ipwpoint, ipwplot, tstartfun)

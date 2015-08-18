@@ -71,6 +71,7 @@ data(haartdat)
 #CD4 is confounder for the effect of initiation of HAART therapy on mortality.
 #Estimate inverse probability weights to correct for confounding.
 #Exposure allocation model is Cox proportional hazards model.
+require(survival)
 temp <- ipwtm(
    exposure = haartind,
    family = "survival",
@@ -85,7 +86,7 @@ temp <- ipwtm(
 #plot inverse probability weights
 graphics.off()
 ipwplot(weights = temp$ipw.weights, timevar = haartdat$fuptime,
-   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized inverse probability weights")
+  binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized inverse probability weights")
 
 #CD4 count has an effect both on dropout and mortality, which causes informative censoring.
 #Use inverse probability of censoring weighting to correct for effect of CD4 on dropout.
@@ -104,13 +105,13 @@ temp2 <- ipwtm(
 #plot inverse probability of censoring weights
 graphics.off()
 ipwplot(weights = temp2$ipw.weights, timevar = haartdat$fuptime,
-   binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized inverse probability of censoring weights")
+  binwidth = 100, ylim = c(-1.5, 1.5), main = "Stabilized inverse probability of censoring weights")
 
 #MSM for the causal effect of initiation of HAART on mortality.
 #Corrected both for confounding and informative censoring.
 #With robust standard error obtained using cluster().
 summary(coxph(Surv(tstart, fuptime, event) ~ haartind + cluster(patient),
-   data = haartdat, weights = temp$ipw.weights*temp2$ipw.weights))   
+   data = haartdat, weights = temp$ipw.weights*temp2$ipw.weights))
 
 #uncorrected model
 summary(coxph(Surv(tstart, fuptime, event) ~ haartind, data = haartdat))
@@ -134,6 +135,7 @@ data(timedat)
    #compute TB status
       timedat$tb.lag <- ifelse(with(timedat, !is.na(Ttb) & fuptime > Ttb), 1, 0)
    #longitudinal CD4-model
+      require(nlme)
       cd4.lme <- lme(cd4.sqrt ~ fuptime + tb.lag, random = ~ fuptime | id,
       data = timedat)
 
@@ -160,6 +162,7 @@ data(timedat)
          fuptime = startstop$fuptime, tb.lag = startstop$tb.lag))
 
 #compute inverse probability weights
+   require(survival)
    temp <- ipwtm(
       exposure = tb,
       family = "survival",
@@ -182,38 +185,49 @@ data(timedat)
    #adjusted using conditioning: part of the effect of TB is adjusted away
       summary(coxph(Surv(tstart, fuptime, event) ~ tb + cd4.sqrt, data = startstop))
 
+\dontrun{
 #compute bootstrap CI for TB parameter (takes a few hours)
-#   #taking into account the uncertainty introduced by modelling longitudinal CD4
-#   #taking into account the uncertainty introduced by estimating the inverse probability weights
-#   #robust with regard to weights unequal to 1
-#   boot.fun <- function(data, index, data.tm){
-#      data.samp <- data[index,]
-#      data.samp$id.samp <- 1:nrow(data.samp)
-#      data.tm.samp <- do.call("rbind", lapply(data.samp$id.samp, function(id.samp)cbind(data.tm[data.tm$id == data.samp$id[data.samp$id.samp == id.samp],], id.samp = id.samp)))
-#      cd4.lme <- lme(cd4.sqrt ~ fuptime + tb.lag, random = ~ fuptime | id.samp, data = data.tm.samp)
-#      times <- sort(unique(c(data.samp$Ttb, data.samp$Tend)))
-#      startstop.samp <- data.frame(id.samp = rep(data.samp$id.samp, each = length(times)), fuptime = rep(times, nrow(data.samp)))
-#      startstop.samp <- merge(startstop.samp, data.samp, by = "id.samp", all.x = TRUE)
-#      startstop.samp <- startstop.samp[with(startstop.samp, fuptime <= Tend),]
-#      startstop.samp$tstart <- tstartfun(id.samp, fuptime, startstop.samp)
-#      startstop.samp$tb <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime >= Ttb), 1, 0)
-#      startstop.samp$tb.lag <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime > Ttb), 1, 0)
-#      startstop.samp$event <- ifelse(with(startstop.samp, !is.na(Tdeath) & fuptime >= Tdeath), 1, 0)
-#      startstop.samp$cd4.sqrt <- predict(cd4.lme, newdata = data.frame(id.samp = startstop.samp$id.samp, fuptime = startstop.samp$fuptime, tb.lag = startstop.samp$tb.lag))
-#      return(coef(coxph(Surv(tstart, fuptime, event) ~ tb, data = startstop.samp,
-#         weights = ipwtm(
-#              exposure = tb,
-#              family = "survival",
-#              numerator = ~ 1,
-#              denominator = ~ cd4.sqrt,
-#              id = id.samp,
-#              tstart = tstart,
-#              timevar = fuptime,
-#              type = "first",
-#              data = startstop.samp)$ipw.weights))[1])
-#      }
-#   bootres <- boot(data = basdat, statistic = boot.fun, R = 999, data.tm = timedat);bootres
-#   boot.ci(bootres, type = "basic")
+#taking into account the uncertainty introduced by modelling longitudinal CD4
+#taking into account the uncertainty introduced by estimating the inverse probability weights
+#robust with regard to weights unequal to 1
+  require(boot)
+  boot.fun <- function(data, index, data.tm){
+     data.samp <- data[index,]
+     data.samp$id.samp <- 1:nrow(data.samp)
+     data.tm.samp <- do.call("rbind", lapply(data.samp$id.samp, function(id.samp) {
+       cbind(data.tm[data.tm$id == data.samp$id[data.samp$id.samp == id.samp],],
+         id.samp = id.samp)
+       }
+     ))
+     cd4.lme <- lme(cd4.sqrt ~ fuptime + tb.lag, random = ~ fuptime | id.samp, data = data.tm.samp)
+     times <- sort(unique(c(data.samp$Ttb, data.samp$Tend)))
+     startstop.samp <- data.frame(id.samp = rep(data.samp$id.samp, each = length(times)),
+                                  fuptime = rep(times, nrow(data.samp)))
+     startstop.samp <- merge(startstop.samp, data.samp, by = "id.samp", all.x = TRUE)
+     startstop.samp <- startstop.samp[with(startstop.samp, fuptime <= Tend),]
+     startstop.samp$tstart <- tstartfun(id.samp, fuptime, startstop.samp)
+     startstop.samp$tb <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime >= Ttb), 1, 0)
+     startstop.samp$tb.lag <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime > Ttb), 1, 0)
+     startstop.samp$event <- ifelse(with(startstop.samp, !is.na(Tdeath) & fuptime >= Tdeath), 1, 0)
+     startstop.samp$cd4.sqrt <- predict(cd4.lme, newdata = data.frame(id.samp =
+       startstop.samp$id.samp, fuptime = startstop.samp$fuptime, tb.lag = startstop.samp$tb.lag))
+
+     return(coef(coxph(Surv(tstart, fuptime, event) ~ tb, data = startstop.samp,
+        weights = ipwtm(
+             exposure = tb,
+             family = "survival",
+             numerator = ~ 1,
+             denominator = ~ cd4.sqrt,
+             id = id.samp,
+             tstart = tstart,
+             timevar = fuptime,
+             type = "first",
+             data = startstop.samp)$ipw.weights))[1])
+     }
+  bootres <- boot(data = basdat, statistic = boot.fun, R = 999, data.tm = timedat)
+  bootres
+  boot.ci(bootres, type = "basic")
+}
 }
 
 \keyword{htest}
