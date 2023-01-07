@@ -49,10 +49,10 @@ Cole, S.R. & Hernán, M.A. (2008). Constructing inverse probability weights for m
 
 Robins, J.M., Hernán, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560.
 
-Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \doi{10.18637/jss.v043.i13}.
 }
 
-\author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
+\author{Willem M. van der Wal \email{willem@vanderwalresearch.com}, Ronald B. Geskus \email{rgeskus@oucru.org}}
 
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
@@ -99,23 +99,24 @@ coef(msm)
 confint(msm)
 
 
-\dontrun{
+## Not run: 
 #Compute basic bootstrap confidence interval .
-require(boot)
-boot.fun <- function(dat, index){
-   coef(glm(
-       formula = y ~ a,
-       data = dat[index,],
-       weights = ipwpoint(
-           exposure = a,
-           family = "gaussian",
-           numerator = ~ 1,
-           denominator = ~ l,
-           data = dat[index,])$ipw.weights))[2]
-   }
-bootres <- boot(simdat, boot.fun, 499);bootres
-boot.ci(bootres, type = "basic")
-}
+#require(boot)
+#boot.fun <- function(dat, index){
+#   coef(glm(
+#       formula = y ~ a,
+#       data = dat[index,],
+#       weights = ipwpoint(
+#           exposure = a,
+#           family = "gaussian",
+#           numerator = ~ 1,
+#           denominator = ~ l,
+#           data = dat[index,])$ipw.weights))[2]
+#   }
+#bootres <- boot(simdat, boot.fun, 499);bootres
+#boot.ci(bootres, type = "basic")
+
+## End(Not run)
 
 }
 

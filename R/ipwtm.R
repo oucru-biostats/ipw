@@ -19,7 +19,7 @@ ipwtm <- function(
 			if (!("exposure" %in% names(tempcall))) stop("No exposure variable specified")
 			if (!("family" %in% names(tempcall)) | ("family" %in% names(tempcall) & !(tempcall$family %in% c("binomial", "survival", "multinomial", "ordinal", "gaussian")))) stop("No valid family specified (\"binomial\", \"survival\", \"multinomial\", \"ordinal\", \"gaussian\")")
 			if (tempcall$family == "binomial") {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "log", "cloglog"))) stop("No valid link function specified for family = binomial (\"logit\", \"probit\", \"cauchit\", \"log\", \"cloglog\")")}
-			if (tempcall$family == "ordinal" ) {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "cloglog"))) stop("No valid link function specified for family = binomial (\"logit\", \"probit\", \"cauchit\", \"cloglog\")")}
+			if (tempcall$family == "ordinal" ) {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "cloglog"))) stop("No valid link function specified for family = ordinal (\"logit\", \"probit\", \"cauchit\", \"cloglog\")")}
 			if (!("denominator" %in% names(tempcall))) stop("No denominator model specified")
 			if (!is.null(tempcall$numerator) & !is(eval(tempcall$numerator), "formula")) stop("Invalid numerator formula specified")
 			if (!is.null(tempcall$denominator) & !is(eval(tempcall$denominator), "formula")) stop("Invalid denominator formula specified")
@@ -27,8 +27,9 @@ ipwtm <- function(
 			if (tempcall$family == "survival" & !("tstart" %in% names(tempcall))) stop("No tstart specified, is necessary for family = \"survival\"")
 			if (!("timevar" %in% names(tempcall))) stop("No timevar specified")
 			if (!("type" %in% names(tempcall))) stop("No type specified (\"first\" or \"all\")")
-			if (!(tempcall$type %in% c("first", "all"))) stop("No type specified (\"first\" or \"all\")")
+			if (!(tempcall$type %in% c("first", "all", "cens"))) stop("No type specified (\"first\", \"all\" or \"cens\")")
 			if (tempcall$family %in% c("survival", "multinomial", "ordinal") & tempcall$type == "all") stop(paste("Type \"all\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
+			if (tempcall$family %in% c("multinomial", "ordinal", "gaussian") & tempcall$type == "cens") stop(paste("Type \"cens\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
 			if (tempcall$family %in% c("gaussian") & tempcall$type == "first") stop(paste("Type \"first\" not implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
 			if (tempcall$family %in% c("gaussian") & !("numerator" %in% names(tempcall))) stop("Numerator necessary for family = \"gaussian\"")
 			if (!("data" %in% names(tempcall))) stop("No data specified")
@@ -51,9 +52,9 @@ ipwtm <- function(
 				exposure = data[,as.character(tempcall$exposure)]
 			)
 		#make selection variable, time points up to first switch from lowest value, or all time points
-			if (type == "first" & (family == "binomial" | family == "survival"))
+			if (type %in% c("first", "cens") & (family == "binomial" | family == "survival"))
 				{tempdat$selvar <- do.call("c", lapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(match(1, x))) return(c(rep(1,match(1, x)),rep(0,length(x)-match(1, x)))) else return(rep(1,length(x)))))}
-			if (type == "first" & (family == "multinomial" | family == "ordinal")){
+			if (type %in% c("first", "cens") & (family == "multinomial" | family == "ordinal")){
 					z <- unique(tempdat$exposure)[unique(tempdat$exposure) != sort(unique(tempdat$exposure))[1]]
 					min2 <- function(x)ifelse(min(is.na(unique(x))) == 1, NA, min(x, na.rm = TRUE))
 					tempdat$selvar <- do.call("c", lapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(min2(match(z, x)))) return(c(rep(1,min2(match(z, x))),rep(0,length(x)-min2(match(z, x))))) else return(rep(1,length(x)))))
@@ -61,7 +62,7 @@ ipwtm <- function(
 			if (type == "all")
 				{tempdat$selvar <- rep(1, nrow(tempdat))}
 		#weights binomial, type "first"
-			if (tempcall$family == "binomial" & tempcall$type == "first") {
+			if (tempcall$family == "binomial" & tempcall$type %in% c("first", "cens")) {
 				if(tempcall$link == "logit") lf <- binomial(link = logit)
 				if(tempcall$link == "probit") lf  <- binomial(link = probit)
 				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
@@ -78,7 +79,8 @@ ipwtm <- function(
 						...)
 					tempdat$p.numerator <- vector("numeric", nrow(tempdat))
 					tempdat$p.numerator[tempdat$exposure == 0 & tempdat$selvar == 1] <- 1 - predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 0]
-					tempdat$p.numerator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]
+					if(type == "first"){tempdat$p.numerator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]}
+					if(type == "cens"){tempdat$p.numerator[tempdat$exposure == 1 & tempdat$selvar == 1] <- 1 - predict.glm(mod1, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]}
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
 					tempdat$w.numerator <- unlist(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)))
 						mod1$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
@@ -95,7 +97,8 @@ ipwtm <- function(
 					...)
 				tempdat$p.denominator <- vector("numeric", nrow(tempdat))
 				tempdat$p.denominator[tempdat$exposure == 0 & tempdat$selvar == 1] <- 1 - predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 0]
-				tempdat$p.denominator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]
+				if(type == "first"){tempdat$p.denominator[tempdat$exposure == 1 & tempdat$selvar == 1] <- predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]}
+				if(type == "cens"){tempdat$p.denominator[tempdat$exposure == 1 & tempdat$selvar == 1] <- 1 - predict.glm(mod2, type = "response")[tempdat$exposure[tempdat$selvar == 1] == 1]}
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
 				tempdat$w.denominator <- unlist(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)))
 				mod2$call$formula <- eval(parse(text = paste(deparse(tempcall$exposure, width.cutoff = 500), deparse(tempcall$denominator, width.cutoff = 500), sep = "")))
@@ -163,12 +166,13 @@ ipwtm <- function(
 					temp$bashaz.cum.numerator <- NULL
 					tempdat <- merge(tempdat, temp, by = "timevar", all.x = TRUE);rm(temp)
 					tempdat <- tempdat[order(tempdat$id, tempdat$timevar),]
-					tempdat$risk.numerator[tempdat$selvar == 1] <- predict(mod1, type="risk", centered = TRUE)
+					tempdat$risk.numerator[tempdat$selvar == 1] <-predict(mod1, type="risk", centered = TRUE)
 					tempdat$hazard.numerator[tempdat$selvar == 1] <- with(tempdat[tempdat$selvar == 1,], bashaz.numerator*risk.numerator)
 					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 0)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 0),], exp(-1*bashaz.numerator*risk.numerator))
-					tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.numerator*risk.numerator))
+					if(type == "first"){tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.numerator*risk.numerator))}
+					if(type == "cens"){tempdat$p.numerator[with(tempdat, selvar == 1 & exposure == 1)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.numerator*risk.numerator))}
 					tempdat$p.numerator[tempdat$selvar == 0] <- 1
-					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x) cumprod(x)), tempdat$id)
+					tempdat$w.numerator <- unsplit(lapply(split(tempdat$p.numerator, tempdat$id), function(x)cumprod(x)), tempdat$id)
 					mod1$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$numerator, width.cutoff = 500), sep = "")))
 					mod1$call$data <- tempcall$data
 				}
@@ -189,10 +193,11 @@ ipwtm <- function(
 				temp$bashaz.cum.denominator <- NULL
 				tempdat <- merge(tempdat, temp, by = "timevar", all.x = TRUE);rm(temp)
 				tempdat <- tempdat[order(tempdat$id, tempdat$timevar),]
-				tempdat$risk.denominator[tempdat$selvar == 1] <- predict(mod2, type="risk", centered = TRUE)
+				tempdat$risk.denominator[tempdat$selvar == 1] <-predict(mod2, type="risk", centered = TRUE)
 				tempdat$hazard.denominator[tempdat$selvar == 1] <- with(tempdat[tempdat$selvar == 1,], bashaz.denominator*risk.denominator)
 				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 0)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 0),], exp(-1*bashaz.denominator*risk.denominator))
-				tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.denominator*risk.denominator))
+				if(type == "first"){tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 1)] <- 1 - with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.denominator*risk.denominator))}
+				if(type == "cens"){tempdat$p.denominator[with(tempdat, selvar == 1 & exposure == 1)] <- with(tempdat[with(tempdat, selvar == 1 & exposure == 1),], exp(-1*bashaz.denominator*risk.denominator))}
 				tempdat$p.denominator[tempdat$selvar == 0] <- 1
 				tempdat$w.denominator <- unsplit(lapply(split(tempdat$p.denominator, tempdat$id), function(x)cumprod(x)), tempdat$id)
 				mod2$call$formula <- eval(parse(text = paste("Surv(", deparse(tempcall$tstart), ", ", deparse(tempcall$timevar, width.cutoff = 500), ", ", deparse(tempcall$exposure, width.cutoff = 500), ") ", deparse(tempcall$denominator, width.cutoff = 500), sep = "")))

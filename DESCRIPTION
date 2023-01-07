@@ -1,14 +1,12 @@
 Package: ipw
-Version: 1.0-11
-Date: 2015-08-18
+Version: 1.2
+Date: 2023-01-02
 Title: Estimate Inverse Probability Weights
-Authors@R: c(person(c("Ronald", "B."), "Geskus", role=c("aut", "cre"),
-    , email="r.b.geskus@amc.uva.nl"),
-    person(c("Willem","M."), "van der Wal", role=c("aut"), 
-                         comment="maintainer until 2010"))
-Author: Ronald B. Geskus [aut, cre],
-    Willem M. van der Wal [aut] (maintainer until 2010)
-Maintainer: Ronald B. Geskus <r.b.geskus@amc.uva.nl>
+Authors@R: c(person(c("Willem", "M."), "van der Wal", role = c("aut", "cre"), email = "willem@vanderwalresearch.com"),
+   person(c("Ronald", "B."), "Geskus", role=c("aut"), email = "rgeskus@oucru.org", comment = "maintainer 2011-2022"))
+Author: Willem M. van der Wal [aut, cre],
+  Ronald B. Geskus [aut] (maintainer 2011-2022)
+Maintainer: Willem M. van der Wal <willem@vanderwalresearch.com>
 Depends: R (>= 3.0.0)
 Imports: MASS, nnet, survival, geepack, graphics, methods, stats
 Suggests: nlme, survey, boot
@@ -19,8 +17,7 @@ Description: Functions to estimate the probability to receive the observed treat
 	correct for informative censoring.	
 Encoding: latin1
 License: GPL (>= 2)
-LazyData: true
 NeedsCompilation: no
-Packaged: 2015-08-18 13:57:44 UTC; rbgeskus
+Packaged: 2023-01-03 07:48:07 UTC; wmvdw
 Repository: CRAN
-Date/Publication: 2015-08-18 16:58:46
+Date/Publication: 2023-01-07 01:10:05 UTC

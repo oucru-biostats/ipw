@@ -9,12 +9,12 @@ citEntry(entry = "Article",
   volume       = "43",
   number       = "13",
   pages        = "1--23",
-  url          = "http://www.jstatsoft.org/v43/i13/",
+  doi          = "10.18637/jss.v043.i13",
 
   textVersion  =
   paste("Willem M. van der Wal, Ronald B. Geskus (2011).",
         "ipw: An R Package for Inverse Probability Weighting.",
         "Journal of Statistical Software, 43(13), 1-23.",
-        "URL http://www.jstatsoft.org/v43/i13/.")
+        "DOI 10.18637/jss.v043.i13")
 )
 

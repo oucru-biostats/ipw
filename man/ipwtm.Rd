@@ -1,4 +1,4 @@
-\name{ipwtm}
+ \name{ipwtm}
 \Rdversion{1.1}
 \alias{ipwtm}
 
@@ -19,7 +19,7 @@
 \item{id}{vector, uniquely identifying the units under observation (typically patients) within which the longitudinal measurements are taken.}
 \item{tstart}{numerical vector, representing the starting time of follow-up intervals, using the counting process notation. This argument is only needed when \code{family=} \code{"survival"}, otherwise it is ignored. The Cox proportional hazards models are fitted using counting process data. Since a switch in exposure level can occur at the start of follow-up, \code{tstart} should be negative for the first interval (with \code{timevar=0}) within each patient.}
 \item{timevar}{numerical vector, representing follow-up time, starting at \code{0}. This variable is used as the end time of follow-up intervals, using the counting process notation, when \code{family="survival"}.}
-\item{type}{specifies the type of exposure. Alternatives are \code{"first"} and \code{"all"}. With \code{type="first"}, weights are estimated up to the first switch from the lowest exposure value (typically \code{0} or the first factor level) to any other value. After this switch, weights will then be constant. Such a weight is e.g. used when estimating the effect of ``initiation of HAART'' on mortality (see example below). With \code{type="all"}, all time points are used to estimate weights. Currently, only \code{"first"} is implemented for \code{"survival"}, \code{"multinomial"} and \code{"ordinal"} families. Only value \code{"all"} is implemented for the \code{"gaussian"} family. Both \code{type="first"} and \code{type="all"} are implemented for the \code{"binomial"} family.}
+\item{type}{specifies the type of exposure. Alternatives are \code{"first"}, \code{"cens"} and \code{"all"}. With \code{type="first"}, weights are estimated up to the first switch from the lowest exposure value (typically \code{0} or the first factor level) to any other value. After this switch, weights will then be constant. Such a weight is e.g. used when estimating the effect of ``initiation of HAART'' on mortality (see example 1 below). \code{type="first"} is currently only implemented for \code{"binomial"}, \code{"survival"}, \code{"multinomial"} and \code{"ordinal"} families. With \code{type="cens"} inverse probability of censoring weights (IPCW) are estimated as defined in appendix 1 in Cole & Hernán (2008). IPCW is illustrated in example 1 below. \code{type="cens"} is currently only implemented for \code{"binomial"} and \code{"survival"} families. With \code{type="all"}, all time points are used to estimate weights. \code{type="all"} is implemented only for the \code{"binomial"} and \code{"gaussian"} family.}
 \item{data}{dataframe containing \code{exposure}, variables in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar}.}
 \item{corstr}{correlation structure, only needed when using \code{family = "gaussian"}. Defaults to "ar1". See \code{\link{geeglm}} for details.}
 \item{trunc}{optional truncation percentile (0-0.5). E.g. when \code{trunc = 0.01}, the left tail is truncated to the 1st percentile, and the right tail is truncated to the 99th percentile. When specified, both un-truncated and truncated weights are returned.}
@@ -50,14 +50,14 @@ A list containing the following elements:
 \section{Missing values}{Currently, the \code{exposure} variable and the variables used in \code{numerator} and \code{denominator}, \code{id}, \code{tstart} and \code{timevar} should not contain missing values.}
 
 \references{
-Cole, S.R. & Hernán, M.A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \bold{168}(6), 656-664.
+Cole, S.R. & Hernán, M.A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \bold{168}(6), 656-664. \url{https://pubmed.ncbi.nlm.nih.gov:443/18682488/}.
 
-Robins, J.M., Hernán, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560.
+Robins, J.M., Hernán, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560. \url{https://pubmed.ncbi.nlm.nih.gov/10955408/}.
 
-Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \url{http://www.jstatsoft.org/v43/i13/}.
+Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \doi{10.18637/jss.v043.i13}.
 }
 
-\author{Willem M. van der Wal \email{w.m.vanderwal@amc.uva.nl}}
+\author{Willem M. van der Wal \email{willem@vanderwalresearch.com}, Ronald B. Geskus \email{rgeskus@oucru.org}}
 
 \seealso{\code{\link{basdat}}, \code{\link{haartdat}}, \code{\link{ipwplot}}, \code{\link{ipwpoint}}, \code{\link{ipwtm}}, \code{\link{timedat}}, \code{\link{tstartfun}}.}
 
@@ -71,7 +71,6 @@ data(haartdat)
 #CD4 is confounder for the effect of initiation of HAART therapy on mortality.
 #Estimate inverse probability weights to correct for confounding.
 #Exposure allocation model is Cox proportional hazards model.
-require(survival)
 temp <- ipwtm(
    exposure = haartind,
    family = "survival",
@@ -99,7 +98,7 @@ temp2 <- ipwtm(
    id = patient,
    tstart = tstart,
    timevar = fuptime,
-   type = "first",
+   type = "cens",
    data = haartdat)
 
 #plot inverse probability of censoring weights
@@ -110,6 +109,7 @@ ipwplot(weights = temp2$ipw.weights, timevar = haartdat$fuptime,
 #MSM for the causal effect of initiation of HAART on mortality.
 #Corrected both for confounding and informative censoring.
 #With robust standard error obtained using cluster().
+require(survival)
 summary(coxph(Surv(tstart, fuptime, event) ~ haartind + cluster(patient),
    data = haartdat, weights = temp$ipw.weights*temp2$ipw.weights))
 
@@ -162,7 +162,6 @@ data(timedat)
          fuptime = startstop$fuptime, tb.lag = startstop$tb.lag))
 
 #compute inverse probability weights
-   require(survival)
    temp <- ipwtm(
       exposure = tb,
       family = "survival",
@@ -178,6 +177,7 @@ data(timedat)
 
 #models
    #IPW-fitted MSM, using cluster() to obtain robust standard error estimate
+      require(survival)
       summary(coxph(Surv(tstart, fuptime, event) ~ tb + cluster(id),
       data = startstop, weights = temp$ipw.weights))
    #unadjusted
@@ -185,49 +185,50 @@ data(timedat)
    #adjusted using conditioning: part of the effect of TB is adjusted away
       summary(coxph(Surv(tstart, fuptime, event) ~ tb + cd4.sqrt, data = startstop))
 
-\dontrun{
+## Not run: 
 #compute bootstrap CI for TB parameter (takes a few hours)
 #taking into account the uncertainty introduced by modelling longitudinal CD4
 #taking into account the uncertainty introduced by estimating the inverse probability weights
 #robust with regard to weights unequal to 1
-  require(boot)
-  boot.fun <- function(data, index, data.tm){
-     data.samp <- data[index,]
-     data.samp$id.samp <- 1:nrow(data.samp)
-     data.tm.samp <- do.call("rbind", lapply(data.samp$id.samp, function(id.samp) {
-       cbind(data.tm[data.tm$id == data.samp$id[data.samp$id.samp == id.samp],],
-         id.samp = id.samp)
-       }
-     ))
-     cd4.lme <- lme(cd4.sqrt ~ fuptime + tb.lag, random = ~ fuptime | id.samp, data = data.tm.samp)
-     times <- sort(unique(c(data.samp$Ttb, data.samp$Tend)))
-     startstop.samp <- data.frame(id.samp = rep(data.samp$id.samp, each = length(times)),
-                                  fuptime = rep(times, nrow(data.samp)))
-     startstop.samp <- merge(startstop.samp, data.samp, by = "id.samp", all.x = TRUE)
-     startstop.samp <- startstop.samp[with(startstop.samp, fuptime <= Tend),]
-     startstop.samp$tstart <- tstartfun(id.samp, fuptime, startstop.samp)
-     startstop.samp$tb <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime >= Ttb), 1, 0)
-     startstop.samp$tb.lag <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime > Ttb), 1, 0)
-     startstop.samp$event <- ifelse(with(startstop.samp, !is.na(Tdeath) & fuptime >= Tdeath), 1, 0)
-     startstop.samp$cd4.sqrt <- predict(cd4.lme, newdata = data.frame(id.samp =
-       startstop.samp$id.samp, fuptime = startstop.samp$fuptime, tb.lag = startstop.samp$tb.lag))
-
-     return(coef(coxph(Surv(tstart, fuptime, event) ~ tb, data = startstop.samp,
-        weights = ipwtm(
-             exposure = tb,
-             family = "survival",
-             numerator = ~ 1,
-             denominator = ~ cd4.sqrt,
-             id = id.samp,
-             tstart = tstart,
-             timevar = fuptime,
-             type = "first",
-             data = startstop.samp)$ipw.weights))[1])
-     }
-  bootres <- boot(data = basdat, statistic = boot.fun, R = 999, data.tm = timedat)
-  bootres
-  boot.ci(bootres, type = "basic")
-}
+#  require(boot)
+#  boot.fun <- function(data, index, data.tm){
+#     data.samp <- data[index,]
+#     data.samp$id.samp <- 1:nrow(data.samp)
+#     data.tm.samp <- do.call("rbind", lapply(data.samp$id.samp, function(id.samp) {
+#       cbind(data.tm[data.tm$id == data.samp$id[data.samp$id.samp == id.samp],],
+#         id.samp = id.samp)
+#       }
+#     ))
+#     cd4.lme <- lme(cd4.sqrt ~ fuptime + tb.lag, random = ~ fuptime | id.samp, data = data.tm.samp)
+#     times <- sort(unique(c(data.samp$Ttb, data.samp$Tend)))
+#     startstop.samp <- data.frame(id.samp = rep(data.samp$id.samp, each = length(times)),
+#                                  fuptime = rep(times, nrow(data.samp)))
+#     startstop.samp <- merge(startstop.samp, data.samp, by = "id.samp", all.x = TRUE)
+#     startstop.samp <- startstop.samp[with(startstop.samp, fuptime <= Tend),]
+#     startstop.samp$tstart <- tstartfun(id.samp, fuptime, startstop.samp)
+#     startstop.samp$tb <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime >= Ttb), 1, 0)
+#     startstop.samp$tb.lag <- ifelse(with(startstop.samp, !is.na(Ttb) & fuptime > Ttb), 1, 0)
+#     startstop.samp$event <- ifelse(with(startstop.samp, !is.na(Tdeath) & fuptime >= Tdeath), 1, 0)
+#     startstop.samp$cd4.sqrt <- predict(cd4.lme, newdata = data.frame(id.samp =
+#       startstop.samp$id.samp, fuptime = startstop.samp$fuptime, tb.lag = startstop.samp$tb.lag))
+#
+#     return(coef(coxph(Surv(tstart, fuptime, event) ~ tb, data = startstop.samp,
+#        weights = ipwtm(
+#             exposure = tb,
+#             family = "survival",
+#             numerator = ~ 1,
+#             denominator = ~ cd4.sqrt,
+#             id = id.samp,
+#             tstart = tstart,
+#             timevar = fuptime,
+#             type = "first",
+#             data = startstop.samp)$ipw.weights))[1])
+#     }
+#  bootres <- boot(data = basdat, statistic = boot.fun, R = 999, data.tm = timedat)
+#  bootres
+#  boot.ci(bootres, type = "basic")
+#
+## End(Not run)
 }
 
 \keyword{htest}
