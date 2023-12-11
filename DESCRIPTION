@@ -1,5 +1,5 @@
 Package: ipw
-Version: 1.2
+Version: 1.2.1
 Date: 2023-01-02
 Title: Estimate Inverse Probability Weights
 Authors@R: c(person(c("Willem", "M."), "van der Wal", role = c("aut", "cre"), email = "willem@vanderwalresearch.com"),
@@ -15,9 +15,9 @@ Description: Functions to estimate the probability to receive the observed treat
 	estimating causal effects from observational data via marginal structural models. Both point
 	treatment situations and longitudinal studies can be analysed. The same functions can be used to
 	correct for informative censoring.	
-Encoding: latin1
+Encoding: UTF-8
 License: GPL (>= 2)
 NeedsCompilation: no
-Packaged: 2023-01-03 07:48:07 UTC; wmvdw
+Packaged: 2023-12-11 08:06:24 UTC; hornik
 Repository: CRAN
-Date/Publication: 2023-01-07 01:10:05 UTC
+Date/Publication: 2023-12-11 08:22:39 UTC

@@ -45,9 +45,9 @@ A list containing the following elements:
 \section{Missing values}{Currently, the \code{exposure} variable and the variables used in \code{numerator} and \code{denominator} should not contain missing values.}
 
 \references{
-Cole, S.R. & Hern·n, M.A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \bold{168}(6), 656-664.
+Cole, S.R. & Hern√°n, M.A. (2008). Constructing inverse probability weights for marginal structural models. \emph{American Journal of Epidemiology}, \bold{168}(6), 656-664.
 
-Robins, J.M., Hern·n, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560.
+Robins, J.M., Hern√°n, M.A. & Brumback, B.A. (2000). Marginal structural models and causal inference in epidemiology. \emph{Epidemiology}, \bold{11}, 550-560.
 
 Van der Wal W.M. & Geskus R.B. (2011). ipw: An R Package for Inverse  Probability Weighting. \emph{Journal of Statistical Software}, \bold{43}(13), 1-23. \doi{10.18637/jss.v043.i13}.
 }
