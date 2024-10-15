@@ -1,66 +1,93 @@
 ipwtm <- function(
-	exposure,
-	family,
-	link,
-	numerator = NULL,
-	denominator,
-	id,
-	tstart,
-	timevar,
-	type,
-	data,
-	corstr = "ar1",
-	trunc = NULL,
-	...)
-	{
-		#save input
-			tempcall <- match.call()
-		#some basic input checks
-			if (!("exposure" %in% names(tempcall))) stop("No exposure variable specified")
-			if (!("family" %in% names(tempcall)) | ("family" %in% names(tempcall) & !(tempcall$family %in% c("binomial", "survival", "multinomial", "ordinal", "gaussian")))) stop("No valid family specified (\"binomial\", \"survival\", \"multinomial\", \"ordinal\", \"gaussian\")")
-			if (tempcall$family == "binomial") {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "log", "cloglog"))) stop("No valid link function specified for family = binomial (\"logit\", \"probit\", \"cauchit\", \"log\", \"cloglog\")")}
-			if (tempcall$family == "ordinal" ) {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "cloglog"))) stop("No valid link function specified for family = ordinal (\"logit\", \"probit\", \"cauchit\", \"cloglog\")")}
-			if (!("denominator" %in% names(tempcall))) stop("No denominator model specified")
-			if (!is.null(tempcall$numerator) & !is(eval(tempcall$numerator), "formula")) stop("Invalid numerator formula specified")
-			if (!is.null(tempcall$denominator) & !is(eval(tempcall$denominator), "formula")) stop("Invalid denominator formula specified")
-			if (!("id" %in% names(tempcall))) stop("No patient id specified")
-			if (tempcall$family == "survival" & !("tstart" %in% names(tempcall))) stop("No tstart specified, is necessary for family = \"survival\"")
-			if (!("timevar" %in% names(tempcall))) stop("No timevar specified")
-			if (!("type" %in% names(tempcall))) stop("No type specified (\"first\" or \"all\")")
-			if (!(tempcall$type %in% c("first", "all", "cens"))) stop("No type specified (\"first\", \"all\" or \"cens\")")
-			if (tempcall$family %in% c("survival", "multinomial", "ordinal") & tempcall$type == "all") stop(paste("Type \"all\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
-			if (tempcall$family %in% c("multinomial", "ordinal", "gaussian") & tempcall$type == "cens") stop(paste("Type \"cens\" not yet implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
-			if (tempcall$family %in% c("gaussian") & tempcall$type == "first") stop(paste("Type \"first\" not implemented for family = ", deparse(tempcall$family, width.cutoff = 500), sep = ""))
-			if (tempcall$family %in% c("gaussian") & !("numerator" %in% names(tempcall))) stop("Numerator necessary for family = \"gaussian\"")
-			if (!("data" %in% names(tempcall))) stop("No data specified")
-			if (!is.null(tempcall$trunc)) {if(tempcall$trunc < 0 | tempcall$trunc > 0.5) stop("Invalid truncation percentage specified (0-0.5)")}
-		#record original order of dataframe so that the output can be returned in the same order
-			order.orig <- 1:nrow(data)
-			order.orig <- order.orig[order(
-				eval(parse(text = paste("data$", deparse(tempcall$id, width.cutoff = 500), sep = ""))),
-				eval(parse(text = paste("data$", deparse(tempcall$timevar, width.cutoff = 500), sep = "")))
-				)] #sort as below
-		#sort dataframe on follow-up time within each individual, necessary for cumulative products below
-			data <- data[order(
-				eval(parse(text = paste("data$", deparse(tempcall$id, width.cutoff = 500), sep = ""))),
-				eval(parse(text = paste("data$", deparse(tempcall$timevar, width.cutoff = 500), sep = "")))
-				),]
-		#make new dataframe for newly computed variables, to prevent variable name conflicts
-			tempdat <- data.frame(
-				id = data[,as.character(tempcall$id)],
-				timevar = data[,as.character(tempcall$timevar)],
-				exposure = data[,as.character(tempcall$exposure)]
-			)
-		#make selection variable, time points up to first switch from lowest value, or all time points
-			if (type %in% c("first", "cens") & (family == "binomial" | family == "survival"))
-				{tempdat$selvar <- do.call("c", lapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(match(1, x))) return(c(rep(1,match(1, x)),rep(0,length(x)-match(1, x)))) else return(rep(1,length(x)))))}
-			if (type %in% c("first", "cens") & (family == "multinomial" | family == "ordinal")){
-					z <- unique(tempdat$exposure)[unique(tempdat$exposure) != sort(unique(tempdat$exposure))[1]]
-					min2 <- function(x)ifelse(min(is.na(unique(x))) == 1, NA, min(x, na.rm = TRUE))
-					tempdat$selvar <- do.call("c", lapply(split(tempdat$exposure, tempdat$id),function(x)if (!is.na(min2(match(z, x)))) return(c(rep(1,min2(match(z, x))),rep(0,length(x)-min2(match(z, x))))) else return(rep(1,length(x)))))
-			}
-			if (type == "all")
-				{tempdat$selvar <- rep(1, nrow(tempdat))}
+    exposure, family, link, denominator, id, tstart, timevar, type, data, 
+    numerator = NULL, corstr = "ar1", trunc = NULL, ...
+) {
+  # Save input
+  tempcall <- match.call()
+  
+  # Helper function to check for required arguments
+  check_required <- function(arg, msg) {
+    if (!(arg %in% names(tempcall))) stop(msg)
+  }
+  
+  # Validate required arguments
+  check_required("exposure", "No exposure variable specified")
+  check_required("denominator", "No denominator model specified")
+  check_required("id", "No patient id specified")
+  check_required("timevar", "No timevar specified")
+  check_required("type", "No type specified (\"first\" or \"all\")")
+  check_required("data", "No data specified")
+  
+  # Family-specific checks
+  valid_families <- c("binomial", "survival", "multinomial", "ordinal", "gaussian")
+  valid_links <- list(
+    binomial = c("logit", "probit", "cauchit", "log", "cloglog"),
+    ordinal = c("logit", "probit", "cauchit", "cloglog")
+  )
+  
+  if (!family %in% valid_families) stop("Invalid family specified")
+  if (family %in% names(valid_links) && !(link %in% valid_links[[family]])) {
+    stop(paste("No valid link function specified for family =", family))
+  }
+  
+  # Special handling for survival
+  if (family == "survival") check_required("tstart", "No tstart specified, necessary for family = \"survival\"")
+  
+  # Formula validation
+  if (!is.null(numerator) && !is(eval(numerator), "formula")) stop("Invalid numerator formula specified")
+  if (!is(eval(denominator), "formula")) stop("Invalid denominator formula specified")
+  
+  # Type validation
+  valid_types <- c("first", "all", "cens")
+  if (!(type %in% valid_types)) stop("Invalid type specified (\"first\", \"all\" or \"cens\")")
+  
+  unsupported_combinations <- list(
+    survival = "all",
+    multinomial = c("all", "cens"),
+    ordinal = c("all", "cens"),
+    gaussian = c("first", "cens")
+  )
+  
+  if (family %in% names(unsupported_combinations) && type %in% unsupported_combinations[[family]]) {
+    stop(paste("Type", type, "not yet implemented for family =", family))
+  }
+  
+  if (family == "gaussian" && is.null(numerator)) stop("Numerator necessary for family = \"gaussian\"")
+  
+  # Truncation check
+  if (!is.null(trunc) && (trunc < 0 || trunc > 0.5)) stop("Invalid truncation percentage specified (0-0.5)")
+  
+  # Record original order of dataframe
+  order.orig <- order(data[[deparse(tempcall$id)]], data[[deparse(tempcall$timevar)]])
+  
+  # Sort dataframe by id and timevar
+  data <- data[order.orig, ]
+  # Create a new dataframe to prevent variable name conflicts
+  tempdat <- data.frame(
+    id = data[[deparse(tempcall$id)]],
+    timevar = data[[deparse(tempcall$timevar)]],
+    exposure = data[[deparse(tempcall$exposure)]]
+  )
+  
+  # Define selection variable based on type and family
+  if (type %in% c("first", "cens")) {
+    if (family %in% c("binomial", "survival")) {
+      tempdat$selvar <- unlist(lapply(split(tempdat$exposure, tempdat$id), function(x) {
+        idx <- match(1, x)
+        if (!is.na(idx)) c(rep(1, idx), rep(0, length(x) - idx)) else rep(1, length(x))
+      }))
+    } else if (family %in% c("multinomial", "ordinal")) {
+      z <- setdiff(unique(tempdat$exposure), sort(unique(tempdat$exposure))[1])
+      min2 <- function(x) ifelse(all(is.na(x)), NA, min(x, na.rm = TRUE))
+      tempdat$selvar <- unlist(lapply(split(tempdat$exposure, tempdat$id), function(x) {
+        idx <- min2(match(z, x))
+        if (!is.na(idx)) c(rep(1, idx), rep(0, length(x) - idx)) else rep(1, length(x))
+      }))
+    }
+  } else if (type == "all") {
+    tempdat$selvar <- rep(1, nrow(tempdat))
+  }
+  
 		#weights binomial, type "first"
 			if (tempcall$family == "binomial" & tempcall$type %in% c("first", "cens")) {
 				if(tempcall$link == "logit") lf <- binomial(link = logit)
