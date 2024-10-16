@@ -27,11 +27,7 @@ ipwpoint <- function(
 			)
 		#weights binomial
 			if (tempcall$family == "binomial") {
-				if(tempcall$link == "logit") lf <- binomial(link = logit)
-				if(tempcall$link == "probit") lf  <- binomial(link = probit)
-				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
-				if(tempcall$link == "log") lf  <- binomial(link = log)
-				if(tempcall$link == "cloglog") lf  <- binomial(link = cloglog)
+			  lf <- binomial(link = tempcall$link)
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
