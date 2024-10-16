@@ -90,11 +90,7 @@ ipwtm <- function(
   
 		#weights binomial, type "first"
 			if (tempcall$family == "binomial" & tempcall$type %in% c("first", "cens")) {
-				if(tempcall$link == "logit") lf <- binomial(link = logit)
-				if(tempcall$link == "probit") lf  <- binomial(link = probit)
-				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
-				if(tempcall$link == "log") lf  <- binomial(link = log)
-				if(tempcall$link == "cloglog") lf  <- binomial(link = cloglog)
+			  lf <- binomial(link = tempcall$link)
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
@@ -136,11 +132,7 @@ ipwtm <- function(
 			}
 		#weights binomial, type "all"
 			if (tempcall$family == "binomial" & tempcall$type == "all") {
-				if(tempcall$link == "logit") lf <- binomial(link = logit)
-				if(tempcall$link == "probit") lf  <- binomial(link = probit)
-				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
-				if(tempcall$link == "log") lf  <- binomial(link = log)
-				if(tempcall$link == "cloglog") lf  <- binomial(link = cloglog)
+			  lf <- binomial(link = tempcall$link)
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
