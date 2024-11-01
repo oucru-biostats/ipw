@@ -11,16 +11,52 @@ ipwpoint <- function(
 		#save input
 			tempcall <- match.call()
 		#some basic input checks
-			if (!("exposure" %in% names(tempcall))) stop("No exposure variable specified")
-			if (!("family" %in% names(tempcall)) | ("family" %in% names(tempcall) & !(tempcall$family %in% c("binomial", "multinomial", "ordinal", "gaussian")))) stop("No valid family specified (\"binomial\", \"multinomial\", \"ordinal\", \"gaussian\")")
-			if (tempcall$family == "binomial") {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "log", "cloglog"))) stop("No valid link function specified for family = binomial (\"logit\", \"probit\", \"cauchit\", \"log\", \"cloglog\")")}
-			if (tempcall$family == "ordinal" ) {if(!(tempcall$link %in% c("logit", "probit", "cauchit", "cloglog"))) stop("No valid link function specified for family = binomial (\"logit\", \"probit\", \"cauchit\", \"cloglog\")")}
-			if (!("denominator" %in% names(tempcall))) stop("No denominator model specified")
-			if (!is.null(tempcall$numerator) & !is(eval(tempcall$numerator), "formula")) stop("Invalid numerator formula specified")
-			if (!is.null(tempcall$denominator) & !is(eval(tempcall$denominator), "formula")) stop("Invalid denominator formula specified")
-			if (tempcall$family %in% c("gaussian") & !("numerator" %in% names(tempcall))) stop("Numerator necessary for family = \"gaussian\"")
-			if (!("data" %in% names(tempcall))) stop("No data specified")
-			if (!is.null(tempcall$trunc)) {if(tempcall$trunc < 0 | tempcall$trunc > 0.5) stop("Invalid truncation percentage specified (0-0.5)")}
+			# Helper function to check if a variable exists in tempcall
+			check_var <- function(var, msg) {
+			  if (!(var %in% names(tempcall))) stop(msg)
+			}
+			
+			# Helper function to check if a value is in a set
+			check_in_set <- function(value, valid_set, msg) {
+			  if (!(value %in% valid_set)) stop(msg)
+			}
+			
+			# Check required variables
+			check_var("exposure", "No exposure variable specified")
+			check_var("denominator", "No denominator model specified")
+			check_var("data", "No data specified")
+			
+			# Check family validity
+			check_var("family", "No valid family specified (\"binomial\", \"multinomial\", \"ordinal\", \"gaussian\")")
+			check_in_set(tempcall$family, c("binomial", "multinomial", "ordinal", "gaussian"), "Invalid family specified")
+			
+			# Check link function for specific families
+			valid_links <- c("logit", "probit", "cauchit", "log", "cloglog")
+			if (tempcall$family %in% c("binomial", "ordinal")) {
+			  check_var("link", paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
+			  check_in_set(tempcall$link, valid_links, paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
+			}
+			
+			# Validate numerator and denominator formulas
+			if (!is.null(tempcall$numerator)) {
+			  if (!is(eval(tempcall$numerator), "formula")) stop("Invalid numerator formula specified")
+			}
+			if (!is.null(tempcall$denominator)) {
+			  if (!is(eval(tempcall$denominator), "formula")) stop("Invalid denominator formula specified")
+			}
+			
+			# Check for numerator in Gaussian family
+			if (tempcall$family == "gaussian") {
+			  check_var("numerator", "Numerator necessary for family = \"gaussian\"")
+			}
+			
+			# Validate truncation percentage
+			if (!is.null(tempcall$trunc)) {
+			  if (tempcall$trunc < 0 | tempcall$trunc > 0.5) stop("Invalid truncation percentage specified (0-0.5)")
+			}
+			
+		# Check if exposure is in correct format
+			data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]])
 		#make new dataframe for newly computed variables, to prevent variable name conflicts
 			tempdat <- data.frame(
 				exposure = data[,as.character(tempcall$exposure)]
