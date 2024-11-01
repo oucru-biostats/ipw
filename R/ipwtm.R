@@ -91,25 +91,33 @@ ipwtm <- function(
       }
     }
     
-    # Check for character type and factor requirement
-    else if (is.character(exposure)) {
-      if (!is.factor(exposure)) {
-        stop("Error: Character 'exposure' variable must be converted to a factor before use.")
-      } else {
-        warning("Notice: The factor levels of 'exposure' will be recoded.\nThe lower level will become 0, and the higher level will become 1.")
-        # Convert factor to 0 and 1 based on levels
-        exposure <- as.numeric(exposure) - 1
+    # If non-numeric variable, check factor requirement
+    else if (is.factor(exposure)) {
+      # Extract factor levels
+      factor_levels <- levels(exposure)
+      
+      if (length(factor_levels) != 2) {
+        stop("Error: The factor 'exposure' must have exactly two levels.")
       }
-    }
-    
-    # Error if exposure is not numeric or character
-    else {
-      stop("Error: The 'exposure' variable must be either a numeric variable with values 0 and 1, or a character variable that has been converted to a factor with exactly two levels.\nIf your data type is incorrect, please update it to meet these requirements for the function to work correctly.")
+      
+      lower_level <- factor_levels[1]
+      higher_level <- factor_levels[2]
+      
+      warning(paste0(
+        "Notice: The factor levels of 'exposure' will be recoded.\n",
+        "The lower level (", lower_level, ") will be assigned as unexposed, and the higher level (", higher_level, ") will be assigned as exposed."
+      ))
+      
+      # Convert factor to 0 and 1 based on levels
+      exposure <- as.numeric(exposure) - 1
+    } else {
+      stop("Error: non-numeric 'exposure' variable must be converted to a factor before use.")
     }
     
     # Return the modified exposure variable
     return(exposure)
   }
+  
   
   data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]])
   
