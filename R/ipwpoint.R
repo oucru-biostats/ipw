@@ -11,9 +11,9 @@ ipwpoint <- function(
 		#save input
 			tempcall <- match.call()
 		#some basic input checks
-			# Helper function to check if a variable exists in tempcall
-			check_var <- function(var, msg) {
-			  if (!(var %in% names(tempcall))) stop(msg)
+			# Helper function to check for required arguments
+			check_required <- function(arg, msg) {
+			  if (!(arg %in% names(tempcall))) stop(msg)
 			}
 			
 			# Helper function to check if a value is in a set
@@ -22,18 +22,18 @@ ipwpoint <- function(
 			}
 			
 			# Check required variables
-			check_var("exposure", "No exposure variable specified")
-			check_var("denominator", "No denominator model specified")
-			check_var("data", "No data specified")
+			check_required("exposure", "No exposure variable specified")
+			check_required("denominator", "No denominator model specified")
+			check_required("data", "No data specified")
 			
 			# Check family validity
-			check_var("family", "No valid family specified (\"binomial\", \"multinomial\", \"ordinal\", \"gaussian\")")
+			check_required("family", "No valid family specified (\"binomial\", \"multinomial\", \"ordinal\", \"gaussian\")")
 			check_in_set(tempcall$family, c("binomial", "multinomial", "ordinal", "gaussian"), "Invalid family specified")
 			
 			# Check link function for specific families
 			valid_links <- c("logit", "probit", "cauchit", "log", "cloglog")
 			if (tempcall$family %in% c("binomial", "ordinal")) {
-			  check_var("link", paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
+			  check_required("link", paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
 			  check_in_set(tempcall$link, valid_links, paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
 			}
 			
@@ -47,7 +47,7 @@ ipwpoint <- function(
 			
 			# Check for numerator in Gaussian family
 			if (tempcall$family == "gaussian") {
-			  check_var("numerator", "Numerator necessary for family = \"gaussian\"")
+			  check_required("numerator", "Numerator necessary for family = \"gaussian\"")
 			}
 			
 			# Validate truncation percentage

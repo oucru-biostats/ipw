@@ -10,6 +10,11 @@ ipwtm <- function(
     if (!(arg %in% names(tempcall))) stop(msg)
   }
   
+  # Helper function to check if a value is in a set
+  check_in_set <- function(value, valid_set, msg) {
+    if (!(value %in% valid_set)) stop(msg)
+  }
+
   # Validate required arguments
   check_required("exposure", "No exposure variable specified")
   check_required("denominator", "No denominator model specified")
@@ -25,13 +30,15 @@ ipwtm <- function(
     ordinal = c("logit", "probit", "cauchit", "cloglog")
   )
   
-  if (!family %in% valid_families) stop("Invalid family specified")
+  check_in_set(family, valid_families, "Invalid family specified")
   if (family %in% names(valid_links) && !(link %in% valid_links[[family]])) {
     stop(paste("No valid link function specified for family =", family))
   }
   
   # Special handling for survival
-  if (family == "survival") check_required("tstart", "No tstart specified, necessary for family = \"survival\"")
+  if (family == "survival") {
+    check_required("tstart", "No tstart specified, necessary for family = \"survival\"")
+  }
   
   # Formula validation
   if (!is.null(numerator) && !is(eval(numerator), "formula")) stop("Invalid numerator formula specified")
@@ -39,8 +46,9 @@ ipwtm <- function(
   
   # Type validation
   valid_types <- c("first", "all", "cens")
-  if (!(type %in% valid_types)) stop("Invalid type specified (\"first\", \"all\" or \"cens\")")
+  check_in_set(type, valid_types, "Invalid type specified (\"first\", \"all\" or \"cens\")")
   
+  # Unsupported combinations
   unsupported_combinations <- list(
     survival = "all",
     multinomial = c("all", "cens"),
