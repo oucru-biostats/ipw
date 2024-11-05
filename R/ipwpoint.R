@@ -26,15 +26,16 @@ ipwpoint <- function(
 			check_required("denominator", "No denominator model specified")
 			check_required("data", "No data specified")
 			
-			# Check family validity
-			check_required("family", "No valid family specified (\"binomial\", \"multinomial\", \"ordinal\", \"gaussian\")")
-			check_in_set(tempcall$family, c("binomial", "multinomial", "ordinal", "gaussian"), "Invalid family specified")
+			# Family-specific checks
+			valid_families <- c("binomial", "multinomial", "ordinal", "gaussian")
+			valid_links <- list(
+			  binomial = c("logit", "probit", "cauchit", "log", "cloglog"),
+			  ordinal = c("logit", "probit", "cauchit", "cloglog")
+			)
 			
-			# Check link function for specific families
-			valid_links <- c("logit", "probit", "cauchit", "log", "cloglog")
-			if (tempcall$family %in% c("binomial", "ordinal")) {
-			  check_required("link", paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
-			  check_in_set(tempcall$link, valid_links, paste("No valid link function specified for family =", tempcall$family, "(", paste(valid_links, collapse = ", "), ")"))
+			check_in_set(family, valid_families, "Invalid family specified")
+			if (family %in% names(valid_links) && !(link %in% valid_links[[family]])) {
+			  stop(paste("No valid link function specified for family =", family))
 			}
 			
 			# Validate numerator and denominator formulas
