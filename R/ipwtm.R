@@ -72,7 +72,7 @@ ipwtm <- function(
   data <- data[order.orig, ]
   
   # Check if exposure is in correct format
-  data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]])
+  data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]], family)
   
   # Create a new dataframe to prevent variable name conflicts
   tempdat <- data.frame(

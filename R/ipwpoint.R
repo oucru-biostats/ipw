@@ -57,7 +57,7 @@ ipwpoint <- function(
 			}
 			
 		# Check if exposure is in correct format
-			data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]])
+			data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]], family)
 		#make new dataframe for newly computed variables, to prevent variable name conflicts
 			tempdat <- data.frame(
 				exposure = data[,as.character(tempcall$exposure)]
