@@ -12,8 +12,8 @@ ipwpoint <- function(
 			tempcall <- match.call()
 		#some basic input checks
 			# Helper function to check for required arguments
-			check_required <- function(arg, msg) {
-			  if (!(arg %in% names(tempcall))) stop(msg)
+			check_required <- function(arg, msg, arg_list = tempcall) {
+			  if (!(arg %in% names(arg_list))) stop(msg)
 			}
 			
 			# Helper function to check if a value is in a set
