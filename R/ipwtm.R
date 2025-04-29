@@ -63,11 +63,7 @@ ipwtm <- function(
 				{tempdat$selvar <- rep(1, nrow(tempdat))}
 		#weights binomial, type "first"
 			if (tempcall$family == "binomial" & tempcall$type %in% c("first", "cens")) {
-				if(tempcall$link == "logit") lf <- binomial(link = logit)
-				if(tempcall$link == "probit") lf  <- binomial(link = probit)
-				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
-				if(tempcall$link == "log") lf  <- binomial(link = log)
-				if(tempcall$link == "cloglog") lf  <- binomial(link = cloglog)
+			  lf <- binomial(link = tempcall$link)
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
@@ -109,11 +105,7 @@ ipwtm <- function(
 			}
 		#weights binomial, type "all"
 			if (tempcall$family == "binomial" & tempcall$type == "all") {
-				if(tempcall$link == "logit") lf <- binomial(link = logit)
-				if(tempcall$link == "probit") lf  <- binomial(link = probit)
-				if(tempcall$link == "cauchit") lf  <- binomial(link = cauchit)
-				if(tempcall$link == "log") lf  <- binomial(link = log)
-				if(tempcall$link == "cloglog") lf  <- binomial(link = cloglog)
+			  lf <- binomial(link = tempcall$link)
 				if (is.null(tempcall$numerator)) tempdat$w.numerator <- 1
 				else {
 					mod1 <- glm(
@@ -238,10 +230,7 @@ ipwtm <- function(
 			}
 		#weights ordinal
 			if (tempcall$family == "ordinal") {
-				if(tempcall$link == "logit") m <- "logistic"
-				if(tempcall$link == "probit") m  <- "probit"
-				if(tempcall$link == "cloglog") m  <- "cloglog"
-				if(tempcall$link == "cauchit") m  <- "cauchit"
+				if(tempcall$link == "logit") m <- "logistic" else m <- tempcall$link
 				if (is.null(tempcall$numerator)) tempdat$p.numerator <- 1
 				else {
 					mod1 <- polr(
@@ -307,12 +296,14 @@ ipwtm <- function(
 			}
 		#check for NA's in weights
 			if (sum(is.na(tempdat$ipw.weights)) > 0) stop ("NA's in weights!")
+			
 		#truncate weights, when trunc value is specified (0-0.5)
 			if (!(is.null(tempcall$trunc))){
 				tempdat$weights.trunc <- tempdat$ipw.weights
 				tempdat$weights.trunc[tempdat$ipw.weights <= quantile(tempdat$ipw.weights, 0+trunc)] <- quantile(tempdat$ipw.weights, 0+trunc)
 				tempdat$weights.trunc[tempdat$ipw.weights >  quantile(tempdat$ipw.weights, 1-trunc)] <- quantile(tempdat$ipw.weights, 1-trunc)
 			}
+			
 		#return results in the same order as the original input dataframe
 			if (is.null(tempcall$trunc)){
 				if (is.null(tempcall$numerator)) return(list(ipw.weights = tempdat$ipw.weights[order(order.orig)], call = tempcall, selvar = tempdat$selvar[order(order.orig)], den.mod = mod2))
