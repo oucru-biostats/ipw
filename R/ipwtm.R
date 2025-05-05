@@ -30,13 +30,13 @@ ipwtm <- function(
     ordinal = c("logit", "probit", "cauchit", "cloglog")
   )
   
-  check_in_set(family, valid_families, "Invalid family specified")
-  if (family %in% names(valid_links) && !(link %in% valid_links[[family]])) {
+  check_in_set(tempcall$family, valid_families, "Invalid family specified")
+  if (tempcall$family %in% names(valid_links) && !(tempcall$link %in% valid_links[[tempcall$family]])) {
     stop(paste("No valid link function specified for family =", family))
   }
   
   # Special handling for survival
-  if (family == "survival") {
+  if (tempcall$family == "survival") {
     check_required("tstart", "No tstart specified, necessary for family = \"survival\"")
   }
   
@@ -56,11 +56,11 @@ ipwtm <- function(
     gaussian = c("first", "cens")
   )
   
-  if (family %in% names(unsupported_combinations) && type %in% unsupported_combinations[[family]]) {
-    stop(paste("Type", type, "not yet implemented for family =", family))
+  if (tempcall$family %in% names(unsupported_combinations) && type %in% unsupported_combinations[[tempcall$family]]) {
+    stop(paste("Type", type, "not yet implemented for family =", tempcall$family))
   }
   
-  if (family == "gaussian" && is.null(numerator)) stop("Numerator necessary for family = \"gaussian\"")
+  if (tempcall$family == "gaussian" && is.null(numerator)) stop("Numerator necessary for family = \"gaussian\"")
   
   # Truncation check
   if (!is.null(trunc) && (trunc < 0 || trunc > 0.5)) stop("Invalid truncation percentage specified (0-0.5)")
@@ -72,7 +72,7 @@ ipwtm <- function(
   data <- data[order.orig, ]
   
   # Check if exposure is in correct format
-  data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]], family)
+  data[[deparse(tempcall$exposure)]] <- check_exposure(data[[deparse(tempcall$exposure)]], tempcall$family)
   
   # Create a new dataframe to prevent variable name conflicts
   tempdat <- data.frame(
@@ -83,12 +83,12 @@ ipwtm <- function(
   
   # Define selection variable based on type and family
   if (type %in% c("first", "cens")) {
-    if (family %in% c("binomial", "survival")) {
+    if (tempcall$family %in% c("binomial", "survival")) {
       tempdat$selvar <- unlist(lapply(split(tempdat$exposure, tempdat$id), function(x) {
         idx <- match(1, x)
         if (!is.na(idx)) c(rep(1, idx), rep(0, length(x) - idx)) else rep(1, length(x))
       }))
-    } else if (family %in% c("multinomial", "ordinal")) {
+    } else if (tempcall$family %in% c("multinomial", "ordinal")) {
       z <- setdiff(unique(tempdat$exposure), sort(unique(tempdat$exposure))[1])
       min2 <- function(x) ifelse(all(is.na(x)), NA, min(x, na.rm = TRUE))
       tempdat$selvar <- unlist(lapply(split(tempdat$exposure, tempdat$id), function(x) {
